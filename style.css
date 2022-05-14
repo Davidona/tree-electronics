@@ -1,0 +1,45 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background-color: gainsboro;
+  }
+.card{
+    background-color: white;
+    border-radius: 30px;
+    box-shadow: 12px 12px 22px gray;
+  }
+.submitButton{
+    border: none;
+    outline: none;
+    height: 50px;
+    width: 100%;
+    background-color: black;
+    color: white;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  .submitButton:hover{
+    background-color: white;
+    border: 1px solid;
+    color: black;
+  }
+
+  .supportButton{
+    border: none;
+    outline: none;
+    height: 25px;
+    width: 70%;
+    background-color: cadetblue;
+    color: white;
+    border-radius: 4px;
+    font-weight: bold;
+  }
+  .supportButton:hover{
+    background-color: white;
+    border: 1px solid;
+    color: cadetblue;
+  }
