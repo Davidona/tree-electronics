@@ -1,12 +1,16 @@
 {
   "name": "tree-electronics",
   "version": "1.0.0",
-  "description": "",
   "main": "myTest.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-    ,"start": "node myTest.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node myTest.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1"
+  },
+  "devDependencies": {},
+  "description": ""
 }
