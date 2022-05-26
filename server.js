@@ -26,8 +26,13 @@ app.get('/reset-password', function (req, res) {
 })
 
 app.get('/update-password', function (req, res) {
-    res.sendFile(path.join(__dirname + '/html/reset-password.html'));
+    res.sendFile(path.join(__dirname + '/html/update-password.html'));
+})
+app.get('/reset-password-request', function (req, res) {
+    res.sendFile(path.join(__dirname + '/html/reset-password-request.html'));
 })
 
 app.listen(port);
 console.log('Server started! At http://localhost:' + port);
+
+
