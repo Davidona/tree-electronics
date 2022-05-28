@@ -3,30 +3,73 @@
   margin: 0;
   box-sizing: border-box;
 }
-body{
-  background-color: gainsboro;
-}
-.row{
-  background-color: white;
-  border-radius: 30px;
-  box-shadow: 12px 12px 22px gray;
-}
-img{
-  border-top-left-radius: 30px;
-  border-bottom-left-radius: 30px;
-}
-.loginButton{
-  border: none;
-  outline: none;
-  height: 50px;
-  width: 100%;
-  background-color: black;
-  color: white;
-  border-radius: 4px;
-  font-weight: bold;
-}
-.loginButton:hover{
-  background-color: white;
-  border: 1px solid;
+.navbar-brand{
+  font-size: 2rem;
   color: black;
+  font-family: 'Pacifico', cursive;
+}
+
+.navbar-brand:hover{
+  color: black;
+}
+
+.nav-link{
+  margin-right: 10px;
+  margin-left: 10px;
+  color: black;
+  font-family: 'Kanit', sans-serif;
+  text-transform: uppercase;
+}
+
+.nav-link:hover{
+  color: rgb(39,24,106);
+}
+
+.search{
+  height: 40px;
+  width: 80%;
+  border-radius: 60px;
+  outline: none;
+  margin-right: -35px;
+  font-family: 'Kanit', sans-serif;
+  border: 2px solid rgb(39,24,106);
+}
+.btn0{
+  height: 40px;
+  width: 40%;
+  outline: none;
+  border: none;
+  background: rgb(39,24,106);
+  color: white;
+  border-radius: 60px;
+  font-weight: 700;
+}
+
+
+.btn0:hover{
+  height: 40px;
+  width: 40%;
+  outline: none;
+  border: none;
+  background: rgb(78, 18, 106);
+  color: white;
+  border-radius: 60px;
+  font-weight: 700;
+}
+
+.main{
+  background: url(../img/main.jpg)no-repeat;
+  background-size: cover;
+  height: 100vh;
+  background-position: 50% 50%;
+  width: 100%;
+}
+
+.card{
+  border-radius: 30px;
+  box-shadow: 1px 1px 1px 2px gray;
+}
+
+h1{
+  font-weight: 700;
 }
