@@ -1,7 +1,8 @@
 var express = require('express');
 var app = express();
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 4000;
 var path = require('path');
+const db = require('./queries')
 
 app.use(express.static(__dirname));
 
@@ -34,5 +35,3 @@ app.get('/reset-password-request', function (req, res) {
 
 app.listen(port);
 console.log('Server started! At http://localhost:' + port);
-
-
