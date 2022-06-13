@@ -43,7 +43,17 @@
               </div>
               <div class="form-row">
                 <div class="col-lg-7">
-                  <input type="password" id="passwordConfirm" placeholder="password confirmation"   class="form-control my-3 p-4" required>
+                  <input type="password" id="passwordConfirm" placeholder="password confirmation"   class="form-control my-3 p-4" required  oninput="check(this)">
+                  <script language='javascript' type='text/javascript'>
+                    function check(input) {
+                        if (input.value != document.getElementById('password').value) {
+                            input.setCustomValidity('Password Must be Matching.');
+                        } else {
+                            // input is valid -- reset the error message
+                            input.setCustomValidity('');
+                        }
+                    }
+                </script>
                 </div>
               </div>
               <div class="form-row">
@@ -53,7 +63,7 @@
               </div>
               <div class="form-row">
                 <div class="col-lg-7">
-                  <button type="submit" id="signup-btn" class="loginButton mt-3 mb-5">Create account</button>
+                  <input type="submit" id="signup-btn" class="loginButton mt-3 mb-5">Create account</button>
                 </div>
               </div>
               <p>Already a member? <a href="./sign-in">Log-in</a></p>
