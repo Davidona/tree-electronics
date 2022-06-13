@@ -1,3 +1,5 @@
+const { query } = require('express')
+
 const Pool = require('pg').Pool
 const pool = new Pool({
   user: 'dfhhzifanwocgt',
@@ -10,16 +12,21 @@ const pool = new Pool({
   }
 })
 
-const sign_up_user = (request, response) => {
-    pool.query('INSERT INTO  ."Users"() ',[], (error, results) => {
+const sign_up_user = function (res, listOfParameters){
+
+    const q=`INSERT INTO public."Users"("ID", "Name", "FamilyName","Email","Password","PromoCode") Values ((SELECT MAX("ID") from "Users")+1 ,'${listOfParameters[0]}','${listOfParameters[1]}','${listOfParameters[2]}','${listOfParameters[3]}','${listOfParameters[4]}');`;
+    console.log(q)
+    pool.query(q, (error, results) => {
       if (error) {
         throw error
       }
-      response.status(200).json(results.rows);
+      res.status(200).json(results.rows);
     })
 }
 
+
 module.exports = {
     sign_up_user,
+    
 }
 
