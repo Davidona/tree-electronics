@@ -12,21 +12,21 @@ const pool = new Pool({
   }
 })
 
-const sign_up_user = function (res, listOfParameters){
+const sign_up_user = function (res, listOfParameters) {
 
-    const q=`INSERT INTO public."Users"("ID", "Name", "FamilyName","Email","Password","PromoCode") Values ((SELECT MAX("ID") from "Users")+1 ,'${listOfParameters[0]}','${listOfParameters[1]}','${listOfParameters[2]}','${listOfParameters[3]}','${listOfParameters[4]}');`;
-    console.log(q)
-    pool.query(q, (error, results) => {
-      if (error) {
-        throw error
-      }
-      res.status(200).json(results.rows);
-    })
+  const q = `INSERT INTO public."Users"("ID", "Name", "FamilyName","Email","Password","PromoCode") Values ((SELECT MAX("ID") from "Users")+1 ,'${listOfParameters[0]}','${listOfParameters[1]}','${listOfParameters[2]}','${listOfParameters[3]}','${listOfParameters[4]}');`;
+  console.log(q)
+  pool.query(q, (error, results) => {
+    if (error) {
+      throw error
+    }
+    res.status(200).json(results.rows);
+  })
 }
 
 
 module.exports = {
-    sign_up_user,
-    
+  sign_up_user,
+
 }
 

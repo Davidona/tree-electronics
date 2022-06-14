@@ -1,45 +1,119 @@
-*{
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
 }
 
-body{
-    background-color: gainsboro;
-  }
-.card{
-    background-color: white;
-    border-radius: 30px;
-    box-shadow: 12px 12px 22px gray;
-  }
-.submitButton{
-    border: none;
-    outline: none;
-    height: 50px;
-    width: 100%;
-    background-color: black;
-    color: white;
-    border-radius: 4px;
-    font-weight: bold;
-  }
-  .submitButton:hover{
-    background-color: white;
-    border: 1px solid;
-    color: black;
-  }
+body {
+  background-color: gainsboro;
+}
 
-  .supportButton{
-    border: none;
-    outline: none;
-    height: 25px;
-    width: 70%;
-    background-color: cadetblue;
-    color: white;
-    border-radius: 4px;
-    font-weight: bold;
-  }
-  .supportButton:hover{
-    background-color: white;
-    border: 1px solid;
-    color: cadetblue;
-  }
+.card {
+  background-color: white;
+  border-radius: 30px;
+  box-shadow: 12px 12px 22px gray;
+}
+
+.submitButton {
+  border: none;
+  outline: none;
+  height: 50px;
+  width: 100%;
+  background-color: black;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.submitButton:hover {
+  background-color: white;
+  border: 1px solid;
+  color: black;
+}
+
+.supportButton {
+  border: none;
+  outline: none;
+  height: 25px;
+  width: 70%;
+  background-color: cadetblue;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.supportButton:hover {
+  background-color: white;
+  border: 1px solid;
+  color: cadetblue;
+}
+
+.navbar-brand{
+  font-size: 2rem;
+  color: black;
+  font-family: 'Pacifico', cursive;
+}
+
+.navbar-brand:hover{
+  color: black;
+}
+
+.nav-link{
+  margin-right: 10px;
+  margin-left: 10px;
+  color: black;
+  font-family: 'Kanit', sans-serif;
+  text-transform: uppercase;
+}
+
+.nav-link:hover{
+  color: rgb(39,24,106);
+}
+
+.btn0{
+  height: 40px;
+  width: 40%;
+  outline: none;
+  border: none;
+  background: rgb(39,24,106);
+  color: white;
+  border-radius: 60px;
+  font-weight: 700;
+}
+
+
+.btn0:hover{
+  height: 40px;
+  width: 40%;
+  outline: none;
+  border: none;
+  background: rgb(78, 18, 106);
+  color: white;
+  border-radius: 60px;
+  font-weight: 700;
+}
+
+.main{
+  background: url(../img/main.jpg)no-repeat;
+  background-size: cover;
+  height: 100vh;
+  background-position: 50% 50%;
+  width: 100%;
+}
+
+.card{
+  border-radius: 30px;
+  box-shadow: 1px 1px 1px 2px gray;
+}
+
+h1{
+  font-weight: 700;
+}
+
+.custom-toggler .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgb(39,24,106)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+.custom-toggler.navbar-toggler {
+  border-color: rgb(39,24,106);
+} 
