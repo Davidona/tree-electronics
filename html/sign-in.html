@@ -35,7 +35,7 @@
               </div>
               <div class="form-row">
                 <div class="col-lg-7">
-                  <div class="g-recaptcha" id="grecaptcha" data-sitekey="6LebMGkgAAAAAPb46NvPkm3IMO8AmBTs8mawuzpp"></div>
+                  <!-- <div class="g-recaptcha" id="grecaptcha" data-sitekey="6LebMGkgAAAAAPb46NvPkm3IMO8AmBTs8mawuzpp"></div>
                   <script>
                     var form = document.getElementById('login-form');
                     form.addEventListener("submit", function(event){
@@ -45,7 +45,7 @@
                         }
                       }
                     , false);
-                  </script>
+                  </script> -->
                 </div>
               </div>
               <div class="form-row">
@@ -56,34 +56,35 @@
               <a href="./reset-password-request">Forgot password</a>
               <p>Don't have an account? <a href="./sign-up">Register here</a></p>
               <script>
-                const signupForm = document.getElementById('login-form');
+                const signinform = document.getElementById('login-form');
                 const signupBtn = document.getElementById('loginButton');
           
           
-                signupForm.onsubmit = function() {myFunction()};
+                signinform.onsubmit = function() {myFunction()};
                 function myFunction() {
       
       
                     signinFunc()
+                    return false;
                   }
           
                 function signinFunc() {
           
 
-                    var email = signupForm.email.value
-                    var password = signupForm.password.value
-                    var response = grecaptcha.getResponse()
-                    console.log(response)
+                    var email = signinform.email.value
+                    var password = signinform.password.value
+                    //var response = grecaptcha.getResponse()
+                    //console.log(response)
           
                     var json = {
                             'email':email,
                             'password': password,
-                            'response':response
+                            // 'response':response
                           }
           
           
                     $.ajax({
-                      url: "/sign-in-parameters",
+                      url: "/sign-in",
                       type: "POST",
                       data: json,
                       success: function (response) {
@@ -94,7 +95,7 @@
                         alert(errmsg + "  " + status);
                       }
                     });
-            
+                    return false;
                 }
               </script>
             </form>
