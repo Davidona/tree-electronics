@@ -266,66 +266,155 @@
 // });		
 
 
-
-const express = require('express');
-const expressLayouts = require('express-ejs-layouts');
-const mongoose = require('mongoose');
-const passport = require('passport');
-const flash = require('connect-flash');
-const session = require('express-session');
-
+const express = require("express");
+const { pool } = require("./dbConfig");
+const bcrypt = require("bcrypt");
+const passport = require("passport");
+const flash = require("express-flash");
+const session = require("express-session");
+require("dotenv").config();
 const app = express();
+app.use(express.static(__dirname));
+const PORT = process.env.PORT || 3000;
 
-// Passport Config
-require('./config/passport')(passport);
+const initializePassport = require("./passportConfig");
 
-// DB Config
-const db = require('./config/keys').mongoURI;
+initializePassport(passport);
 
-// Connect to MongoDB
-mongoose
-  .connect(
-    db,
-    { useNewUrlParser: true ,useUnifiedTopology: true}
-  )
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+// Middleware
 
-// EJS
-app.use(expressLayouts);
-app.set('view engine', 'ejs');
+// Parses details from a form
+app.use(express.urlencoded({ extended: false }));
+app.set("view engine", "ejs");
 
-// Express body parser
-app.use(express.urlencoded({ extended: true }));
-
-// Express session
 app.use(
   session({
-    secret: 'secret',
-    resave: true,
-    saveUninitialized: true
+    // Key we want to keep secret which will encrypt all of our information
+    secret: process.env.SESSION_SECRET,
+    // Should we resave our session variables if nothing has changes which we dont
+    resave: false,
+    // Save empty value if there is no vaue which we do not want to do
+    saveUninitialized: false
+  })
+);
+// Funtion inside passport which initializes passport
+app.use(passport.initialize());
+// Store our variables to be persisted across the whole session. Works with app.use(Session) above
+app.use(passport.session());
+app.use(flash());
+
+app.get("/", (req, res) => {
+  res.render("index");
+});
+
+app.get("/users/sign-up", checkAuthenticated, (req, res) => {
+  res.render("sign-up.ejs");
+});
+
+app.get("/users/sign-in", checkAuthenticated, (req, res) => {
+  // flash sets a messages variable. passport sets the error message
+ // console.log(req.session.flash.error);
+  res.render("sign-in.ejs");
+});
+
+app.get("/users/dashboard", checkNotAuthenticated, (req, res) => {
+  console.log(req.isAuthenticated());
+  res.render("dashboard", { user: req.user.name });
+});
+
+app.get("/users/logout", (req, res) => {
+  req.logout();
+  res.render("index", { message: "You have logged out successfully" });
+});
+
+app.post("/users/sign-up", async (req, res) => {
+  let { name, email, password, password2 } = req.body;
+
+  let errors = [];
+
+  console.log({
+    name,
+    email,
+    password,
+    password2
+  });
+
+  if (!name || !email || !password || !password2) {
+    errors.push({ message: "Please enter all fields" });
+  }
+
+  if (password.length < 6) {
+    errors.push({ message: "Password must be a least 6 characters long" });
+  }
+
+  if (password !== password2) {
+    errors.push({ message: "Passwords do not match" });
+  }
+
+  if (errors.length > 0) {
+    res.render("sign-up", { errors, name, email, password, password2 });
+  } else {
+    hashedPassword = await bcrypt.hash(password, 10);
+    console.log(hashedPassword);
+    // Validation passed
+    pool.query(
+      `SELECT * FROM users
+        WHERE email = $1`,
+      [email],
+      (err, results) => {
+        if (err) {
+          console.log(err);
+        }
+        console.log(results.rows);
+
+        if (results.rows.length > 0) {
+          return res.render("sign-up", {
+            message: "Email already registered"
+          });
+        } else {
+          pool.query(
+            `INSERT INTO users (name, email, password)
+                VALUES ($1, $2, $3)
+                RETURNING id, password`,
+            [name, email, hashedPassword],
+            (err, results) => {
+              if (err) {
+                throw err;
+              }
+              console.log(results.rows);
+              req.flash("success_msg", "You are now registered. Please log in");
+              res.redirect("/users/sign-in");
+            }
+          );
+        }
+      }
+    );
+  }
+});
+
+app.post(
+  "/users/sign-in",
+  passport.authenticate("local", {
+    successRedirect: "/users/dashboard",
+    failureRedirect: "/users/sign-in",
+    failureFlash: true
   })
 );
 
-// Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Connect flash
-app.use(flash());
-
-// Global variables
-app.use(function(req, res, next) {
-  res.locals.success_msg = req.flash('success_msg');
-  res.locals.error_msg = req.flash('error_msg');
-  res.locals.error = req.flash('error');
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return res.redirect("/users/dashboard");
+  }
   next();
+}
+
+function checkNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect("/users/sign-in");
+}
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Routes
-app.use('/', require('./routes/index.js'));
-app.use('/users', require('./routes/users.js'));
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, console.log(`Server running on  ${PORT}`));
