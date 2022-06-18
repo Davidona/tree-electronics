@@ -58,7 +58,6 @@ app.use(passport.session());
 app.use(flash());
 
 app.get('/users/reset-password/:id', (req, res) => {
-  console.log("sss")
   res.render('reset-password.ejs', {
     id: req.params.id
   });
@@ -148,8 +147,6 @@ app.get('/users/resetPassword/:userId/:uniqueString', (req, res) => {
         console.log(err);
       }
       if (results.rows.length > 0) {
-        console.log(uniqueString)
-        console.log(results.rows[0].Spare2)
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2)
           .then((result) => {
@@ -223,7 +220,7 @@ app.post("/users/sign-up", async (req, res) => {
     });
   } else {
     hashedPassword = await bcrypt.hash(password, 10);
-    console.log(hashedPassword);
+
     // Validation passed
     try {
       pool.query(
