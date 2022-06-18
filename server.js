@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
+var path = require('path');
 require("dotenv").config();
 const app = express();
 app.use(express.static(__dirname));
@@ -31,12 +32,13 @@ app.use(
 );
 app.set("view engine", "ejs");
 var transporter = nodemailer.createTransport({
-  service: "zoho",
+  service: "Aol",
   port: 587,
   auth: {
-    // user: "tree_shop123@aol.com",
-    user: "tree_electronics@zohomail.com",
+    user: "tree_shop123@aol.com",
+    //user: "tree_electronics@zohomail.com",
     pass: "hofeohfniurkqgos",
+    //pass: "Db123!@#",
   },
 });
 app.use(
@@ -55,6 +57,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+app.get('/users/reset-password/:id', (req, res) => {
+  console.log("sss")
+  res.render('reset-password.ejs', {
+    id: req.params.id
+  });
+});
 app.get("/", (req, res) => {
   res.render("index");
 });
@@ -62,6 +70,9 @@ app.get("/", (req, res) => {
 app.get("/users/sign-up", checkAuthenticated, (req, res) => {
   res.render("sign-up.ejs");
 });
+app.get('/users/reset-password-request', function (req, res) {
+  res.render("reset-password-request.ejs");
+})
 
 app.get("/users/sign-in", checkAuthenticated, (req, res) => {
   // flash sets a messages variable. passport sets the error message
@@ -124,6 +135,64 @@ app.get("/users/logout", (req, res) => {
   });
 });
 
+
+app.get('/users/resetPassword/:userId/:uniqueString', (req, res) => {
+  const {
+    userId,
+    uniqueString
+  } = req.params;
+  pool.query(
+    `SELECT "ID", "Spare2" FROM public."Users" WHERE "ID"=${userId}`,
+    (err, results) => {
+      if (err) {
+        console.log(err);
+      }
+      if (results.rows.length > 0) {
+        console.log(uniqueString)
+        console.log(results.rows[0].Spare2)
+        bcrypt
+          .compare(uniqueString, results.rows[0].Spare2)
+          .then((result) => {
+            if (result) {
+
+              res.redirect(`/users/reset-password/${userId}`);
+              req.flash("success_msg", "User was activated please log in.");
+
+            } else {
+              req.flash("success_msg", "user not found please sign up");
+              res.redirect("/users/sign-up");
+            }
+          })
+      }
+    })
+})
+
+app.post('/users/reset-password/:id', (req, res) => {
+  const {
+    password
+  } = req.body;
+  const userId = req.params.id;
+
+  bcrypt.hash(password, 10, (err, hash) => {
+    if (err) throw err;
+    // Set password to hashed
+    pool.query(
+        `UPDATE "Users" SET "Password" = '${hash}' WHERE "ID"=${userId};`,
+        (err, results) => {
+          if (err) {
+            console.log(err);
+          }
+        }
+        
+      )
+        req.flash(
+          "success_msg",
+          "Password was changed, please login."
+        );
+        res.redirect('/users/sign-in');
+
+  });
+})
 app.post("/users/sign-up", async (req, res) => {
   let {
     name,
@@ -164,7 +233,6 @@ app.post("/users/sign-up", async (req, res) => {
           if (err) {
             console.log(err);
           }
-          console.log("s");
           if (results.rows.length > 0) {
             return res.render("sign-up", {
               message: "Email already registered",
@@ -177,7 +245,6 @@ app.post("/users/sign-up", async (req, res) => {
                   throw err;
                 }
 
-                console.log("b");
                 var id = results.rows[0].maximum + 1;
                 console.log(id)
                 const uniqueString = uuidv4() + id;
@@ -190,11 +257,10 @@ app.post("/users/sign-up", async (req, res) => {
                         if (err) {
                           throw err;
                         }
-                        console.log("w");
                         const currentUrl = "http://localhost:3000/";
                         //const currentUrl='https://garageservice.herokuapp.com/';
                         var mailOptions = {
-                          from: "tree_electronics@zohomail.com",
+                          from: "tree_shop123@aol.com",
                           to: email,
                           subject: "Tree-Electronics please verify your email",
                           html: `<p> Verify your email address to complete the signup and login into your accout.</p>
@@ -231,7 +297,51 @@ app.post("/users/sign-up", async (req, res) => {
     }
   }
 });
+app.post('/users/reset-password-request', function (req, res) {
 
+  const currentUrl = "http://localhost:3000/";
+  //const currentUrl='https://garageservice.herokuapp.com/';
+
+
+  pool.query(
+    `SELECT "ID", "Spare2" FROM public."Users" WHERE "Email"='${req.body.email}'`,
+    (err, results) => {
+      if (err) {
+        console.log(err);
+      }
+      var userID = results.rows[0].ID
+      const uniqueString = uuidv4() + userID;
+      bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {
+        if (results.rows.length > 0) {
+          pool.query(
+            `UPDATE "Users" SET "Spare2" = '${hashedUniqueID}' WHERE "ID"=${userID};`,
+            (err, results) => {
+              if (err) {
+                console.log(err);
+              }
+
+              var mailOptions = {
+                from: "tree_shop123@aol.com",
+                to: req.body.email,
+                subject: 'Reset Your Password',
+                html: `<p> Pleaes press the link to reset your password.</p><p>
+              </p><p>Press <a href=${
+                  currentUrl + 'users/resetPassword/' + userID + '/' + uniqueString
+              }>here</a> to proceed.</p>`
+              };
+              transporter
+                .sendMail(mailOptions)
+            }
+
+          )
+
+
+        }
+      })
+      res.redirect("/users/sign-in");
+    })
+
+})
 app.post(
   "/users/sign-in",
   function (req, res, next) {
@@ -263,7 +373,6 @@ app.post(
       }
     });
 
-    console.log("urd");
     return next();
   },
   passport.authenticate("local", {
