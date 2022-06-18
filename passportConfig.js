@@ -8,7 +8,7 @@ function initialize(passport) {
   const authenticateUser = (email, password, done) => {
     console.log(email, password);
     pool.query(
-      `SELECT * FROM users WHERE email = $1`,
+      'SELECT "ID", "Name", "Email", "Password","Spare1" FROM public."Users" WHERE "Email"=$1',
       [email],
       (err, results) => {
         if (err) {
@@ -18,12 +18,15 @@ function initialize(passport) {
 
         if (results.rows.length > 0) {
           const user = results.rows[0];
-
-          bcrypt.compare(password, user.password, (err, isMatch) => {
+          bcrypt.compare(password, user.Password, (err, isMatch) => {
             if (err) {
               console.log(err);
             }
             if (isMatch) {
+              console.log(user.Spare1)
+              if(user.Spare1=="false"){
+                return done(null, false, { message: "Account not activated" });
+              }
               return done(null, user);
             } else {
               //password is incorrect
@@ -32,6 +35,7 @@ function initialize(passport) {
           });
         } else {
           // No user
+
           return done(null, false, {
             message: "No user with that email address"
           });
@@ -50,19 +54,26 @@ function initialize(passport) {
   // object should be stored in the session. The result of the serializeUser method is attached
   // to the session as req.session.passport.user = {}. Here for instance, it would be (as we provide
   //   the user id as the key) req.session.passport.user = {id: 'xyz'}
-  passport.serializeUser((user, done) => done(null, user.id));
+  // passport.serializeUser((user, done) => done(null, user.id));
 
-  // In deserializeUser that key is matched with the in memory array / database or any data resource.
-  // The fetched object is attached to the request object as req.user
+  // // In deserializeUser that key is matched with the in memory array / database or any data resource.
+  // // The fetched object is attached to the request object as req.user
 
-  passport.deserializeUser((id, done) => {
-    pool.query(`SELECT * FROM users WHERE id = $1`, [id], (err, results) => {
-      if (err) {
-        return done(err);
-      }
-      console.log(`ID is ${results.rows[0].id}`);
-      return done(null, results.rows[0]);
-    });
+  // passport.deserializeUser((id, done) => {
+  //   pool.query(`SELECT * FROM users WHERE id = $1`, [id], (err, results) => {
+  //     if (err) {
+  //       return done(err);
+  //     }
+  //     console.log(`ID is ${results.rows[0].id}`);
+  //     return done(null, results.rows[0]);
+  //   });
+  // });
+  passport.serializeUser(function(user, done) {
+    done(null, user);
+  });
+  
+  passport.deserializeUser(function(user, done) {
+    done(null, user);
   });
 }
 

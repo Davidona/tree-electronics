@@ -27,25 +27,30 @@
         </div>
         <div class="col-lg-7 px-5 pt-5">
           <h1 class="font-weight-bold py-3">Sign up</h1>
-          <form id="signup-form">
-            <div class="form-row"  action="/users/sign-up" method="POST">
+          <form id="signup-form" action="/users/sign-up" method="POST">
+            <ul>
+              <% if (typeof errors != 'undefined') { %> <% errors.forEach(error => { %>
+              <li><%= error.message %></li>
+              <% }) %> <% } %>
+            </ul>
+            <div class="form-row" >
               <div class="col-lg-7">
-                <input type="text" id="name" placeholder="First name" class="form-control my-3 p-4" required>
+                <input type="text" id="name" name="name" placeholder="First name" class="form-control my-3 p-4" required>
               </div>
             </div>
             <div class="form-row">
               <div class="col-lg-7">
-                <input type="text" id="lastName" placeholder="Last name" class="form-control my-3 p-4" required>
+                <input type="text" id="lastName" name="lastName" placeholder="Last name" class="form-control my-3 p-4" required>
               </div>
             </div>
             <div class="form-row">
               <div class="col-lg-7">
-                <input type="email" id="email" placeholder="Email Address" class="form-control my-3 p-4" required>
+                <input type="email" id="email" name="email" placeholder="Email Address" class="form-control my-3 p-4" required>
               </div>
             </div>
             <div class="form-row">
               <div class="col-lg-7">
-                <input type="password" id="password" placeholder="password"
+                <input type="password" id="password" name="password" placeholder="password"
                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}" class="form-control my-3 p-4"
                   title="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
                   required>
@@ -53,7 +58,7 @@
             </div>
             <div class="form-row">
               <div class="col-lg-7">
-                <input type="password" id="passwordConfirm" placeholder="password confirmation"
+                <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="password confirmation"
                   class="form-control my-3 p-4" required oninput="check(this)">
                 <script type='text/javascript'>
                   function check(input) {
@@ -69,7 +74,7 @@
             </div>
             <div class="form-row">
               <div class="col-lg-7">
-                <input type="text" id="promoCode" placeholder="Have a promo code" class="form-control my-3 p-4">
+                <input type="text" id="promoCode" name="promoCode" placeholder="Have a promo code" class="form-control my-3 p-4">
               </div>
             </div>
             <div class="form-row">
