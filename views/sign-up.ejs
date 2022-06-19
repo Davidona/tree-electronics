@@ -27,7 +27,7 @@
         </div>
         <div class="col-lg-7 px-5 pt-5">
           <h1 class="font-weight-bold py-3">Sign up</h1>
-          <form id="signup-form" action="/users/sign-up" method="POST">
+          <form id="signup-form" action="/sign-up" method="POST">
             <ul>
               <% if (typeof errors != 'undefined') { %> <% errors.forEach(error => { %>
               <li><%= error.message %></li>

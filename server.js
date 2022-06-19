@@ -57,36 +57,62 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
-app.get('/users/reset-password/:id', (req, res) => {
+app.get('/reset-password/:id', (req, res) => {
   res.render('reset-password.ejs', {
     id: req.params.id
   });
 });
-app.get("/", (req, res) => {
-  res.render("index");
-});
 
-app.get("/users/sign-up", checkAuthenticated, (req, res) => {
+app.get("/sign-up", checkAuthenticated, (req, res) => {
   res.render("sign-up.ejs");
 });
-app.get('/users/reset-password-request', function (req, res) {
+app.get('/reset-password-request', function (req, res) {
   res.render("reset-password-request.ejs");
 })
 
-app.get("/users/sign-in", checkAuthenticated, (req, res) => {
+app.get("/sign-in", checkAuthenticated, (req, res) => {
   // flash sets a messages variable. passport sets the error message
   // console.log(req.session.flash.error);
-
   res.render("sign-in.ejs");
 });
 
-app.get("/users/dashboard", checkNotAuthenticated, (req, res) => {
+app.get("/dashboard", checkNotAuthenticated, (req, res) => {
   console.log(req.isAuthenticated());
-  res.render("dashboard", {
-    user: req.user.name,
+  res.render("dashboard.ejs", {
+    user: req.body.email,
   });
 });
-app.get("/users/verify/:userId/:uniqueString", (req, res) => {
+
+app.get("/buy-pc", checkNotAuthenticated, (req, res) => {
+  console.log(req.isAuthenticated());
+  res.render("buy-pc.ejs", {
+    user: req.body.email,
+  });
+});
+
+app.get("/buy-cell-phone", checkNotAuthenticated, (req, res) => {
+  console.log(req.isAuthenticated());
+  res.render("buy-cell-phone.ejs", {
+    user: req.body.email,
+  });
+});
+
+app.get("/contact-us-page", checkNotAuthenticated, (req, res) => {
+  console.log(req.isAuthenticated());
+  res.render("contact-us-page.ejs", {
+    user: req.body.email,
+  });
+});
+
+app.get("/profile-details", checkNotAuthenticated, (req, res) => {
+  console.log(req.isAuthenticated());
+  res.render("profile-details.ejs", {
+    user: req.body.email,
+  });
+});
+
+
+app.get("/verify/:userId/:uniqueString", (req, res) => {
   const {
     userId,
     uniqueString
@@ -111,7 +137,7 @@ app.get("/users/verify/:userId/:uniqueString", (req, res) => {
                     console.log(err);
                   }
                   req.flash("success_msg", "User was activated please log in.");
-                  res.redirect("/users/sign-in");
+                  res.redirect("/sign-in");
                 }
 
               )
@@ -119,7 +145,7 @@ app.get("/users/verify/:userId/:uniqueString", (req, res) => {
           });
       } else {
         req.flash("success_msg", "user not found please sign up");
-        res.redirect("/users/sign-up");
+        res.redirect("/sign-up");
       }
     }
   )
@@ -127,15 +153,15 @@ app.get("/users/verify/:userId/:uniqueString", (req, res) => {
 
 
 
-app.get("/users/logout", (req, res) => {
+app.get("/logout", (req, res) => {
   req.logout();
-  res.render("index", {
+  res.render("/sign-in", {
     message: "You have logged out successfully",
   });
 });
 
 
-app.get('/users/resetPassword/:userId/:uniqueString', (req, res) => {
+app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
   const {
     userId,
     uniqueString
@@ -152,19 +178,19 @@ app.get('/users/resetPassword/:userId/:uniqueString', (req, res) => {
           .then((result) => {
             if (result) {
 
-              res.redirect(`/users/reset-password/${userId}`);
+              res.redirect(`/reset-password/${userId}`);
               req.flash("success_msg", "User was activated please log in.");
 
             } else {
               req.flash("success_msg", "user not found please sign up");
-              res.redirect("/users/sign-up");
+              res.redirect("/sign-up");
             }
           })
       }
     })
 })
 
-app.post('/users/reset-password/:id', (req, res) => {
+app.post('/reset-password/:id', (req, res) => {
   const {
     password
   } = req.body;
@@ -186,11 +212,11 @@ app.post('/users/reset-password/:id', (req, res) => {
           "success_msg",
           "Password was changed, please login."
         );
-        res.redirect('/users/sign-in');
+        res.redirect('/sign-in');
 
   });
 })
-app.post("/users/sign-up", async (req, res) => {
+app.post("/sign-up", async (req, res) => {
   let {
     name,
     lastName,
@@ -255,14 +281,13 @@ app.post("/users/sign-up", async (req, res) => {
                           throw err;
                         }
                         const currentUrl = "http://localhost:3000/";
-                        //const currentUrl='https://garageservice.herokuapp.com/';
                         var mailOptions = {
                           from: "tree_shop123@aol.com",
                           to: email,
                           subject: "Tree-Electronics please verify your email",
                           html: `<p> Verify your email address to complete the signup and login into your accout.</p>
                       <p>Press <a href=${
-                        currentUrl + "users/verify/" + id + "/" + uniqueString
+                        currentUrl + "verify/" + id + "/" + uniqueString
                       }>here</a> to proceed.</p>`,
                         };
                         transporter
@@ -273,7 +298,7 @@ app.post("/users/sign-up", async (req, res) => {
                               "success_msg",
                               "An activation link was sent to your mail."
                             );
-                            res.redirect("/users/sign-in");
+                            res.redirect("/sign-in");
                           })
                           .catch((err) => {
                             console.log(err);
@@ -294,12 +319,9 @@ app.post("/users/sign-up", async (req, res) => {
     }
   }
 });
-app.post('/users/reset-password-request', function (req, res) {
+app.post('/reset-password-request', function (req, res) {
 
   const currentUrl = "http://localhost:3000/";
-  //const currentUrl='https://garageservice.herokuapp.com/';
-
-
   pool.query(
     `SELECT "ID", "Spare2" FROM public."Users" WHERE "Email"='${req.body.email}'`,
     (err, results) => {
@@ -323,24 +345,21 @@ app.post('/users/reset-password-request', function (req, res) {
                 subject: 'Reset Your Password',
                 html: `<p> Pleaes press the link to reset your password.</p><p>
               </p><p>Press <a href=${
-                  currentUrl + 'users/resetPassword/' + userID + '/' + uniqueString
+                  currentUrl + 'resetPassword/' + userID + '/' + uniqueString
               }>here</a> to proceed.</p>`
               };
               transporter
                 .sendMail(mailOptions)
             }
-
           )
-
-
         }
       })
-      res.redirect("/users/sign-in");
+      res.redirect("/sign-in");
     })
-
 })
+
 app.post(
-  "/users/sign-in",
+  "/sign-in",
   function (req, res, next) {
     if (
       req.body["g-recaptcha-response"] === undefined ||
@@ -352,7 +371,6 @@ app.post(
         responseDesc: "Please select captcha",
       });
     }
-
     var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
     var verificationURL =
       "https://www.google.com/recaptcha/api/siteverify?secret=" +
@@ -373,15 +391,15 @@ app.post(
     return next();
   },
   passport.authenticate("local", {
-    successRedirect: "/users/dashboard",
-    failureRedirect: "/users/sign-in",
+    successRedirect: "/dashboard",
+    failureRedirect: "/sign-in",
     failureFlash: true,
   })
 );
 
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    return res.redirect("/users/dashboard");
+    return res.redirect("/dashboard");
   }
   next();
 }
@@ -390,9 +408,8 @@ function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
-  res.redirect("/users/sign-in");
+  res.redirect("/sign-in");
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT);
+console.log('Server started! At http://localhost:' + PORT + '/sign-in');
