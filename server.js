@@ -240,6 +240,7 @@ app.post("/contact-us-page", (req, res) => {
         msgfield, //not used validation is done on html page
       } =
       req.body;
+      
     //sending mail to itself
     var mailOptions = { 
         from: "tree_shop123@aol.com",
@@ -247,10 +248,20 @@ app.post("/contact-us-page", (req, res) => {
         subject: subject+" by ",
         text: "message from:\nemail: "+email+ "\nname: " +name+"\nmessage:" + msgfield,
       };
-
+      
       transporter
         .sendMail(mailOptions) //sends mail
-      
+        // send a copy to user
+        var mailOptions = { 
+            from: "tree_shop123@aol.com",
+            to:  email, //
+            subject: "copy of "+ subject+" by ",
+            text: "Thank you for your email\n we will contact you as soon as possible here is your message:\n" + msgfield+"\n\n\nBestregards\nTree-Electronics\nSupport",
+          };
+          
+          transporter
+            .sendMail(mailOptions) //sends mail
+
     res.render("contact-us-page.ejs")
   });
 
