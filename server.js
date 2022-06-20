@@ -31,6 +31,9 @@ app.use(
   })
 );
 app.set("view engine", "ejs");
+
+
+/// mailing info using node mailer
 var transporter = nodemailer.createTransport({
   service: "Aol",
   port: 587,
@@ -41,6 +44,8 @@ var transporter = nodemailer.createTransport({
     //pass: "Db123!@#",
   },
 });
+
+
 app.use(
   session({
     // Key we want to keep secret which will encrypt all of our information
@@ -51,108 +56,116 @@ app.use(
     saveUninitialized: false,
   })
 );
+
 // Funtion inside passport which initializes passport
 app.use(passport.initialize());
 // Store our variables to be persisted across the whole session. Works with app.use(Session) above
 app.use(passport.session());
 app.use(flash());
 
+
+//in case /reset-password/:id' is the link where id is an id of the user
 app.get('/reset-password/:id', (req, res) => {
   res.render('reset-password.ejs', {
-    id: req.params.id
+    id: req.params.id   // assign the id to reset-password.ejs see <%= id %> in reset-password.ejs
   });
 });
 
-app.get("/sign-up", checkAuthenticated, (req, res) => {
+//in case /sign-in is the mail 
+app.get("/sign-up", checkAuthenticated, (req, res) => { // check authenticated checks if already signed in if yes moves to dashboard
   res.render("sign-up.ejs");
 });
-app.get('/reset-password-request', function (req, res) {
+
+// in case reset-password-request'is the link, it goes to /reset-password-request.ejs.
+app.get('/reset-password-request', function (req, res) { 
   res.render("reset-password-request.ejs");
 })
 
-app.get("/sign-in", checkAuthenticated, (req, res) => {
-  // flash sets a messages variable. passport sets the error message
-  // console.log(req.session.flash.error);
+//in case /sign=in is the link, it moves to sign-in.ejs (page)
+app.get("/sign-in", checkAuthenticated, (req, res) => {// checks if already signed in i yes it moves to dashboard
+
   res.render("sign-in.ejs");
 });
 
-app.get("/dashboard", checkNotAuthenticated, (req, res) => {
-  console.log(req.isAuthenticated());
+// in case /dashboard is the given link, moves to dashboard.ejs page
+app.get("/dashboard", checkNotAuthenticated, (req, res) => { // checks if account is not signed in, if not moves to sign-in page else continues
   res.render("dashboard.ejs", {
-    user: req.body.email,
+    user: req.user.Name,   // can be changed to req.user.ID or nothing
   });
 });
 
-app.get("/buy-pc", checkNotAuthenticated, (req, res) => {
-  console.log(req.isAuthenticated());
+//in case /buy-pc is the link, moves to /buy-pc page
+app.get("/buy-pc", checkNotAuthenticated, (req, res) => { //  // checks if account is not signed in, if not moves to sign-in page else continues
   res.render("buy-pc.ejs", {
     user: req.body.email,
   });
 });
 
-app.get("/buy-cell-phone", checkNotAuthenticated, (req, res) => {
+//in case /buy-cell phone is the link, moves to buy-cell-phone page
+app.get("/buy-cell-phone", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
   console.log(req.isAuthenticated());
   res.render("buy-cell-phone.ejs", {
     user: req.body.email,
   });
 });
 
-app.get("/contact-us-page", checkNotAuthenticated, (req, res) => {
-  console.log(req.isAuthenticated());
+//in case/ contact-us-page is the link, moves to contat us page
+app.get("/contact-us-page", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
   res.render("contact-us-page.ejs", {
     user: req.body.email,
   });
 });
 
-app.get("/profile-details", checkNotAuthenticated, (req, res) => {
-  console.log(req.isAuthenticated());
+//in case/profile-details is the page moves to profile-details
+app.get("/profile-details", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
   res.render("profile-details.ejs", {
     user: req.body.email,
   });
 });
 
-
+//in case /verify/:userId/:unique String" this is vericication link where userid is the id of the user and uniqueString is a unique generated string for verification puropose
 app.get("/verify/:userId/:uniqueString", (req, res) => {
   const {
     userId,
     uniqueString
-  } = req.params;
+  } = req.params; // takes userid and unique id from the parameters of the link
 
-  pool.query(
+  pool.query(   // first query to get "id" and "Spare2" (used to hold unique string) of an account with given userid
     `SELECT "ID", "Spare2" FROM public."Users" WHERE "ID"=${userId}`,
     (err, results) => {
       if (err) {
         console.log(err);
       }
-      if (results.rows.length > 0) {
+      if (results.rows.length > 0) { // if an account with userid was found
 
         bcrypt
-          .compare(uniqueString, results.rows[0].Spare2)
+          .compare(uniqueString, results.rows[0].Spare2)    //compare unique string from link to unique string of user in database
           .then((result) => {
-            if (result) {
+            if (result) {// if comparison is correct
               pool.query(
-                `UPDATE "Users" SET "Spare1" = \'true\' WHERE "ID"=${userId};`,
+                `UPDATE "Users" SET "Spare1" = \'true\' WHERE "ID"=${userId};`,// change "Spare1" (verified or not) to true 
                 (err, results) => {
                   if (err) {
                     console.log(err);
                   }
-                  req.flash("success_msg", "User was activated please log in.");
-                  res.redirect("/sign-in");
+                  req.flash("success_msg", "User was activated please log in.");    // message to display in sign-in page
+                  res.redirect("/sign-in"); //moves to sign in page
                 }
 
               )
             }
           });
-      } else {
-        req.flash("success_msg", "user not found please sign up");
+      } 
+      // otherwise ( user not found or unique string is wrong user is moved to sign-up page)
+        req.flash("error", "user not found please sign up");
         res.redirect("/sign-up");
-      }
+      
     }
   )
 });
 
 
-
+//in case lpg out is called in link logs accout out (not done yet)
 app.get("/logout", (req, res) => {
   req.logout();
   res.render("/sign-in", {
@@ -160,128 +173,115 @@ app.get("/logout", (req, res) => {
   });
 });
 
-
+//in case /resetPassword/:userId/:uniqueString' is the called link we handle reset Password request(link that was sent to user), where userid is the id of user with uniqueString
 app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
   const {
     userId,
     uniqueString
-  } = req.params;
+  } = req.params;// take userId and uniqueString from link parameters
   pool.query(
-    `SELECT "ID", "Spare2" FROM public."Users" WHERE "ID"=${userId}`,
+    `SELECT "ID", "Spare2" FROM public."Users" WHERE "ID"=${userId}`, // first query to get "id" and "Spare2" (used to hold unique string) of an account with given userid
     (err, results) => {
       if (err) {
         console.log(err);
       }
-      if (results.rows.length > 0) {
+      if (results.rows.length > 0) { // if a user was found with given id
         bcrypt
-          .compare(uniqueString, results.rows[0].Spare2)
-          .then((result) => {
+          .compare(uniqueString, results.rows[0].Spare2)// compare uniqueString from link parameters to uniqueString from account (Spare2)
+          .then((result) => {// if comparison is correct 
             if (result) {
 
-              res.redirect(`/reset-password/${userId}`);
-              req.flash("success_msg", "User was activated please log in.");
+                req.flash("success_msg", "User was activated please log in."); // message to be displayed in reset-password page
+              res.redirect(`/reset-password/${userId}`);//move to reset-password page with userid as a parameter in link
+              
 
-            } else {
-              req.flash("success_msg", "user not found please sign up");
-              res.redirect("/sign-up");
-            }
+            } 
+            // if no user found or unique id do no match move to sign up page
+              req.flash("error", "user not found please sign up"); //message to be displayed in sign-up page
+              res.redirect("/sign-up"); //moves to sign up-page
+            
           })
       }
     })
 })
-
+// in case a post is sent for /reset-password/:id  where id is the id of a user.
 app.post('/reset-password/:id', (req, res) => {
   const {
     password
-  } = req.body;
-  const userId = req.params.id;
+  } = req.body;// takes password from reset password page. no need for confirm password confirm password check is done in html
+  const userId = req.params.id;//takes user id from parameter id in the given link
 
-  bcrypt.hash(password, 10, (err, hash) => {
+  bcrypt.hash(password, 10, (err, hash) => {// hashes password using bycrpt
     if (err) throw err;
-    // Set password to hashed
     pool.query(
-        `UPDATE "Users" SET "Password" = '${hash}' WHERE "ID"=${userId};`,
+        `UPDATE "Users" SET "Password" = '${hash}' WHERE "ID"=${userId};`, // query to update password of a user
         (err, results) => {
-          if (err) {
+          if (err) {    // if error in case of update password update failed, not handeled yet
             console.log(err);
           }
         }
         
       )
-        req.flash(
+        req.flash(  //message to be displayed in sign-in page
           "success_msg",
           "Password was changed, please login."
         );
-        res.redirect('/sign-in');
+        res.redirect('/sign-in');   //moves to sign-in page
 
   });
 })
-app.post("/sign-up", async (req, res) => {
-  let {
+//in case a post was sent as /sign up
+app.post("/sign-up", async (req, res) => { //in case 
+  let { 
     name,
     lastName,
     email,
     password,
-    passwordConfirm,
+    passwordConfirm, //not used validation is done on html page
     promoCode
   } =
-  req.body;
+  req.body; // parameters server gets from /sign-up when submit is pressed, (once submit is clicked all inputs from page go to req.body.
+// all string validations are done on html ()
+  
 
-  let errors = [];
 
-  console.log({
-    name,
-    email,
-    password,
-  });
+ hashedPassword = await bcrypt.hash(password, 10); // hash password using bcrypt
 
-  if (errors.length > 0) {
-    res.render("sign-up", {
-      errors,
-      name,
-      email,
-      password,
-      passwordConfirm,
-      promoCode,
-    });
-  } else {
-    hashedPassword = await bcrypt.hash(password, 10);
-
-    // Validation passed
     try {
       pool.query(
-        'SELECT "ID", "Name", "Email", "Password" FROM public."Users" WHERE "Email"=$1',
+        'SELECT "ID", "Name", "Email", "Password" FROM public."Users" WHERE "Email"=$1',    //this is used to check if email is already in use
         [email],
         (err, results) => {
           if (err) {
             console.log(err);
           }
-          if (results.rows.length > 0) {
-            return res.render("sign-up", {
-              message: "Email already registered",
+          if (results.rows.length > 0) {    // if account with this email is found
+            return res.render("sign-up", {  // we return to sign-ip
+              message: "Email already registered",  //with message
             });
-          } else {
+          } else {  // if no accounts were found
             pool.query(
-              'SELECT case when(MAX("ID") is null) then 0 else MAX("ID")+1 end maximum from public."Users"',
+              'SELECT case when(MAX("ID") is null) then 0 else MAX("ID")+1 end maximum from public."Users"',    // id is created for the user ( depending on number of user already registered)
               (err, results) => {
                 if (err) {
                   throw err;
                 }
 
-                var id = results.rows[0].maximum + 1;
+                var id = results.rows[0].maximum;   // id is taken from result, column "maximum"
                 console.log(id)
-                const uniqueString = uuidv4() + id;
-                bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {
+                const uniqueString = uuidv4() + id; // generate unique id using uudv4 and combine it with user id
+                bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {    //hash uniqueString
                   console.log(hashedUniqueID)
                   try {
-                    pool.query(
+                    pool.query(// query to add new user with available information + "Spare1" as false to (used to verify, if true means account is verified) and uniqueString to "Spare2" (used to verify) 
                       `INSERT INTO public."Users" ("ID", "Name", "FamilyName","Email","Password","PromoCode","Spare1","Spare2") Values ( ${id} ,'${name}','${lastName}','${email}','${hashedPassword}','${promoCode}','false','${hashedUniqueID}');`,
                       (err, results) => {
                         if (err) {
                           throw err;
                         }
-                        const currentUrl = "http://localhost:3000/";
-                        var mailOptions = {
+                        const currentUrl = "http://localhost:3000/";    // need to be changed to heroku once deployed
+                        //mailing information 
+                        var mailOptions = { 
                           from: "tree_shop123@aol.com",
                           to: email,
                           subject: "Tree-Electronics please verify your email",
@@ -290,15 +290,16 @@ app.post("/sign-up", async (req, res) => {
                         currentUrl + "verify/" + id + "/" + uniqueString
                       }>here</a> to proceed.</p>`,
                         };
+
                         transporter
-                          .sendMail(mailOptions)
+                          .sendMail(mailOptions) //sends mail
                           .then(() => {
                             // email sent and verification record saved
                             req.flash(
                               "success_msg",
-                              "An activation link was sent to your mail."
+                              "An activation link was sent to your mail."   //message to be displayed on sign in oage
                             );
-                            res.redirect("/sign-in");
+                            res.redirect("/sign-in");   // move to sing-in page
                           })
                           .catch((err) => {
                             console.log(err);
@@ -318,27 +319,30 @@ app.post("/sign-up", async (req, res) => {
       console.log(err);
     }
   }
-});
-app.post('/reset-password-request', function (req, res) {
+);
+// in case a post was sent to /reset-password-request
+app.post('/reset-password-request', function (req, res) {   
 
-  const currentUrl = "http://localhost:3000/";
+  const currentUrl = "http://localhost:3000/";  // need to be changed to heraku once deployed
   pool.query(
-    `SELECT "ID", "Spare2" FROM public."Users" WHERE "Email"='${req.body.email}'`,
+    `SELECT "ID", "Spare2" FROM public."Users" WHERE "Email"='${req.body.email}'`,  // get ID and Spare2 (uniqueString) of given email
     (err, results) => {
       if (err) {
         console.log(err);
       }
-      var userID = results.rows[0].ID
-      const uniqueString = uuidv4() + userID;
-      bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {
+
+
         if (results.rows.length > 0) {
+            bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {
+            var userID = results.rows[0].ID   //saves user id from db to variable
+            const uniqueString = uuidv4() + userID;   //create uniqueString using uuvid + userID
           pool.query(
-            `UPDATE "Users" SET "Spare2" = '${hashedUniqueID}' WHERE "ID"=${userID};`,
+            `UPDATE "Users" SET "Spare2" = '${hashedUniqueID}' WHERE "ID"=${userID};`,  // add UniqueString to user in "Spare2"
             (err, results) => {
               if (err) {
                 console.log(err);
               }
-
+              //mailing information + link creating for password reset
               var mailOptions = {
                 from: "tree_shop123@aol.com",
                 to: req.body.email,
@@ -349,18 +353,19 @@ app.post('/reset-password-request', function (req, res) {
               }>here</a> to proceed.</p>`
               };
               transporter
-                .sendMail(mailOptions)
+                .sendMail(mailOptions) //sends mail
             }
           )
-        }
-      })
-      res.redirect("/sign-in");
+        })
+      }
+      res.redirect("/sign-in");// redirects to sign-in
     })
 })
-
+// in case a post was sent to sign-in
 app.post(
   "/sign-in",
   function (req, res, next) {
+      // recaptcha checking
     if (
       req.body["g-recaptcha-response"] === undefined ||
       req.body["g-recaptcha-response"] === "" ||
@@ -387,9 +392,12 @@ app.post(
         });
       }
     });
+    // end of recaptcha checking
+
 
     return next();
   },
+  // user authenitcate redirects accordingly
   passport.authenticate("local", {
     successRedirect: "/dashboard",
     failureRedirect: "/sign-in",
@@ -397,18 +405,19 @@ app.post(
   })
 );
 
-function checkAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
+
+function checkAuthenticated(req, res, next) {//  if user is logged in moves to dashboard else continue
+  if (req.isAuthenticated()) { // if yes it moves to dashboard
     return res.redirect("/dashboard");
   }
-  next();
+  next();// otherwise continues 
 }
 
-function checkNotAuthenticated(req, res, next) {
+function checkNotAuthenticated(req, res, next) { //  if user is not logged in moves to sign in else continue
   if (req.isAuthenticated()) {
-    return next();
+    return next();  // if logged in continues
   }
-  res.redirect("/sign-in");
+  res.redirect("/sign-in"); //else moves to sign- in
 }
 
 app.listen(PORT);
