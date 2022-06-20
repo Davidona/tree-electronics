@@ -25,6 +25,7 @@
     "nodemailer": "^6.7.5",
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
+    "passport-remember-me": "^0.0.1",
     "pg": "^8.7.3",
     "uuid": "^8.3.2",
     "v4": "^0.0.1"

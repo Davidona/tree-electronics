@@ -46,7 +46,7 @@
               <li>
                 <hr class="dropdown-divider">
               </li>
-              <li><a class="dropdown-item fa fa-arrow-left" href="/sign-in">Logout</a></li>
+              <li><a class="dropdown-item fa fa-arrow-left" href="/logout">Logout</a></li>
             </ul>
           </li>
         </ul>
@@ -65,8 +65,14 @@
                   <span style="font-size: 30px; color: cadetblue;"><i class="fa-solid fa-user"></i></span>
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
-                  <p>First name.</p>
-                  <p>----</p>
+                  <p>First name</p>
+                  <p contenteditable="true">
+                    <% if(name){ %>
+                      <%= name %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
               <div class="row pt-3">
@@ -74,8 +80,14 @@
                   <span style="font-size: 30px; color: cadetblue"><i class="fa-solid fa-user"></i></span>
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
-                  <p>Last name.</p>
-                  <p>------</p>
+                  <p>Last name</p>
+                  <p contenteditable="true">
+                    <% if(lastName){ %>
+                      <%= lastName %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
             </div>
@@ -85,8 +97,14 @@
                   <span style="font-size: 30px; color: cadetblue;"><i class="fa-solid fa-envelope-open-text"></i></span>
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
-                  <p>E-mail.</p>
-                  <p>----</p>
+                  <p>E-mail</p>
+                  <p contenteditable="true">
+                    <% if(email){ %>
+                      <%= email %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
               <div class="row pt-3">
@@ -95,7 +113,13 @@
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
                   <p>Phone number</p>
-                  <p>------</p>
+                  <p contenteditable="true">
+                    <% if(phone){ %>
+                      <%= phone %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
             </div>
@@ -105,8 +129,14 @@
                   <span style="font-size: 30px; color: cadetblue;"><i class="fa-solid fa-flag"></i></span>
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
-                  <p>Country.</p>
-                  <p>----</p>
+                  <p>Country</p>
+                  <p contenteditable="true">
+                    <% if(country){ %>
+                      <%= country %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
               <div class="row pt-3">
@@ -115,7 +145,13 @@
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
                   <p>City</p>
-                  <p>------</p>
+                  <p contenteditable="true">
+                    <% if(city){ %>
+                      <%= city %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
             </div>
@@ -125,8 +161,14 @@
                   <span style="font-size: 30px; color: cadetblue;"><i class="fa-solid fa-road"></i></span>
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
-                  <p>Street.</p>
-                  <p>----</p>
+                  <p>Street</p>
+                  <p contenteditable="true">
+                    <% if(street){ %>
+                      <%= street %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
               <div class="row pt-3">
@@ -134,8 +176,14 @@
                   <span style="font-size: 30px; color: cadetblue"><i class="fa-solid fa-code"></i></span>
                 </div>
                 <div class="col-lg-10 col-md-9 col-sm-9 col-9">
-                  <p>Zip code.</p>
-                  <p>------</p>
+                  <p>Zip code</p>
+                  <p contenteditable="true">
+                    <% if(zip){ %>
+                      <%= zip %>
+                    <% } else{ %>  
+                      <%= "---" %>
+                   <% } %>
+                  </p>
                 </div>
               </div>
             </div>

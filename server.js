@@ -119,7 +119,14 @@ app.get("/contact-us-page", (req, res) => {
 //in case/profile-details is the page moves to profile-details
 app.get("/profile-details", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
   res.render("profile-details.ejs", {
+    name: req.user.Name,
+    lastName: req.user.FamilyName,
     email: req.user.Email,
+    phone: req.user.PhoneNumber,
+    country: req.user.Country,
+    city: req.user.City,
+    street: req.user.Street,
+    zip: req.user.ZipCode
   });
 });
 
@@ -159,17 +166,16 @@ app.get("/verify/:userId/:uniqueString", (req, res) => {
       // otherwise ( user not found or unique string is wrong user is moved to sign-up page)
         req.flash("error", "user not found please sign up");
         res.redirect("/sign-up");
-      
     }
   )
 });
 
-
-//in case lpg out is called in link logs accout out (not done yet)
-app.get("/logout", (req, res) => {
-  req.logout();
-  res.render("/sign-in", {
-    message: "You have logged out successfully",
+//logout
+app.get('/logout', function(req, res, next) {
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    req.session = null;
+    res.redirect('/sign-in');
   });
 });
 
@@ -402,32 +408,32 @@ app.post(
   "/sign-in",
   function (req, res, next) {
       // recaptcha checking
-    if (
-      req.body["g-recaptcha-response"] === undefined ||
-      req.body["g-recaptcha-response"] === "" ||
-      req.body["g-recaptcha-response"] === null
-    ) {
-      return res.json({
-        responseCode: 1,
-        responseDesc: "Please select captcha",
-      });
-    }
-    var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
-    var verificationURL =
-      "https://www.google.com/recaptcha/api/siteverify?secret=" +
-      secretKey +
-      "&response=" +
-      req.body["g-recaptcha-response"] +
-      "&remoteip" +
-      req.socket.remoteAddress;
-    request(verificationURL, function (error, response, body) {
-      body = JSON.parse(body);
-      if (body.success !== undefined && !body.success) {
-        return res.json({
-          responseError: "Failed captcha verification",
-        });
-      }
-    });
+    // if (
+    //   req.body["g-recaptcha-response"] === undefined ||
+    //   req.body["g-recaptcha-response"] === "" ||
+    //   req.body["g-recaptcha-response"] === null
+    // ) {
+    //   return res.json({
+    //     responseCode: 1,
+    //     responseDesc: "Please select captcha",
+    //   });
+    // }
+    // var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
+    // var verificationURL =
+    //   "https://www.google.com/recaptcha/api/siteverify?secret=" +
+    //   secretKey +
+    //   "&response=" +
+    //   req.body["g-recaptcha-response"] +
+    //   "&remoteip" +
+    //   req.socket.remoteAddress;
+    // request(verificationURL, function (error, response, body) {
+    //   body = JSON.parse(body);
+    //   if (body.success !== undefined && !body.success) {
+    //     return res.json({
+    //       responseError: "Failed captcha verification",
+    //     });
+    //   }
+    // });
     // end of recaptcha checking
 
 
@@ -440,7 +446,6 @@ app.post(
     failureFlash: true,
   })
 );
-
 
 function checkAuthenticated(req, res, next) {//  if user is logged in moves to dashboard else continue
   if (req.isAuthenticated()) { // if yes it moves to dashboard
