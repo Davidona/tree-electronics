@@ -20,6 +20,7 @@ const {
   v4: uuidv4,
   stringify
 } = require("uuid");
+const { receiveMessageOnPort } = require("worker_threads");
 initializePassport(passport);
 
 // Middleware
@@ -118,7 +119,7 @@ app.get("/contact-us-page", (req, res) => {
 //in case/profile-details is the page moves to profile-details
 app.get("/profile-details", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
   res.render("profile-details.ejs", {
-    user: req.body.email,
+    email: req.user.Email,
   });
 });
 
