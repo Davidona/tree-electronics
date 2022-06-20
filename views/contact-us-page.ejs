@@ -97,23 +97,23 @@
               </div>
             </div>
             <div class="col-lg-6 col-md-12 col-sm-12 col-12">
-              <form>
+              <form id="contactUs-form" action="/contact-us-page" method="POST"m>
                 <div class="col-lg-7">
                   <h1 class="font-weight-light text-center py-3">Contact Us</h1>
                 </div>
                 <div class="form-row">
                   <div class="col-lg-7">
-                    <input type="text" placeholder="Name*" class="form-control my-3" required>
+                    <input type="text" placeholder="Name*" id="name" name="name" class="form-control my-3" required>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="col-lg-7">
-                    <input type="email" placeholder="Email*" class="form-control my-3" required>
+                    <input type="email" placeholder="Email*" name="email" id ="email" class="form-control my-3" required>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="col-lg-7">
-                    <select class="form-select my-3" placeholder="Subject" required>
+                    <select class="form-select my-3" placeholder="Subject" name="subject" id ="subject" required>
                       <option value="" disabled selected hidden>Subject*</option>
                       <option>1</option>
                       <option>2</option>
@@ -125,12 +125,12 @@
                 </div>
                 <div class="form-row">
                   <div class="col-lg-7">
-                    <textarea class="form-control" placeholder="Message*" rows="3" required></textarea>
+                    <textarea class="form-control" placeholder="Message*" name="msgfield" id ="msgfield" rows="3" required></textarea>
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="col-lg-7">
-                    <button type="submit" class="submitButton mt-3 mb-5">Submit</button>
+                    <input type="submit" name="contactUsBtn" id ="contactUsBtn" class="submitButton mt-3 mb-5">Submit</button>
                   </div>
                 </div>
                 <div class="form-row-contact">

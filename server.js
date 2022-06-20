@@ -110,9 +110,8 @@ app.get("/buy-cell-phone", checkNotAuthenticated, (req, res) => {// checks if ac
 });
 
 //in case/ contact-us-page is the link, moves to contat us page
-app.get("/contact-us-page", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
+app.get("/contact-us-page", (req, res) => {
   res.render("contact-us-page.ejs", {
-    user: req.body.email,
   });
 });
 
@@ -230,6 +229,31 @@ app.post('/reset-password/:id', (req, res) => {
 
   });
 })
+//if contact us was submited
+app.post("/contact-us-page", (req, res) => {
+
+    //collecting data from EJS file post
+    let { 
+        name,
+        email,
+        subject,
+        msgfield, //not used validation is done on html page
+      } =
+      req.body;
+    //sending mail to itself
+    var mailOptions = { 
+        from: "tree_shop123@aol.com",
+        to:  "tree_shop123@aol.com", //
+        subject: subject+" by ",
+        text: "message from:\nemail: "+email+ "\nname: " +name+"\nmessage:" + msgfield,
+      };
+
+      transporter
+        .sendMail(mailOptions) //sends mail
+      
+    res.render("contact-us-page.ejs")
+  });
+
 //in case a post was sent as /sign up
 app.post("/sign-up", async (req, res) => { //in case 
   let { 
