@@ -119,6 +119,7 @@ app.get("/contact-us-page", (req, res) => {
 //in case/profile-details is the page moves to profile-details
 app.get("/profile-details", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
   res.render("profile-details.ejs", {
+    id: req.user.ID,
     name: req.user.Name,
     lastName: req.user.FamilyName,
     email: req.user.Email,
@@ -160,12 +161,17 @@ app.get("/verify/:userId/:uniqueString", (req, res) => {
                 }
 
               )
+            } else{
+                    // otherwise ( user not found  user is moved to sign-up page)
+                  req.flash("error", "link is not valid please sign-up");
+                  res.redirect("/sign-up");
             }
           });
-      } 
-      // otherwise ( user not found or unique string is wrong user is moved to sign-up page)
+      }else{
         req.flash("error", "user not found please sign up");
         res.redirect("/sign-up");
+      } 
+
     }
   )
 });
@@ -201,15 +207,69 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
               res.redirect(`/reset-password/${userId}`);//move to reset-password page with userid as a parameter in link
               
 
-            } 
+            }else{
             // if no user found or unique id do no match move to sign up page
-              req.flash("error", "user not found please sign up"); //message to be displayed in sign-up page
-              res.redirect("/sign-up"); //moves to sign up-page
+            req.flash("error", "invalid link please reset again"); //message to be displayed in sign-up page
+            res.redirect("/reset-password-request"); //moves to sign up-page
+            }
+
             
           })
+      }else{
+            // if no user found or unique id do no match move to sign up page
+            req.flash("error", "user not found please sign up"); //message to be displayed in sign-up page
+            res.redirect("/sign-up"); //moves to sign up-page
       }
     })
 })
+app.post("/profile-details/:id", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
+
+
+    // name: req.user.Name,
+    // lastName: req.user.FamilyName,
+    // email: req.user.Email,
+    // phone: req.user.PhoneNumber,
+    // country: req.user.Country,
+    // city: req.user.City,
+    // street: req.user.Street,
+    // zip: req.user.ZipCode
+
+  const userId = req.params.id;
+  var {
+    name,
+    lastName,
+    phone,
+    country,
+    city,
+    street,
+    zip
+  } = req.body;
+  console.log(req.user)
+  console.log(req.body)
+  console.log(req.params)
+  name==''?req.user.Name : name
+  lastName==''?req.user.FamilyName : lastName
+  phone==''?req.user.PhoneNumber : phone
+  country==''?req.user.Country : country
+  city==''?req.user.City : city
+  street==''?req.user.Street : street
+  zip==''?req.user.ZipCode : zip
+  zip.trimStart()
+  phone.trimStart()
+  country.trimStart()
+  console.log(phone.trimStart())
+  req.user={name,lastName,phone,country,city,street,zip}
+  console.log(req.user)
+  pool.query(
+    `UPDATE "Users" SET "Name" = '${name}', "FamilyName" = '${lastName}', "PhoneNumber" = '${phone}', "Country" = 'port', "City" = '${city}', "Street" = '${street}', "ZipCode" = '${zip}' WHERE "ID"=${userId};`, // query to update password of a user
+    (err, results) => {
+      if (err) {    // if error in case of update password update failed, not handeled yet
+        console.log(err);
+      }
+    }
+  )
+
+});
 // in case a post is sent for /reset-password/:id  where id is the id of a user.
 app.post('/reset-password/:id', (req, res) => {
   const {
@@ -441,10 +501,16 @@ app.post(
   },
   // user authenitcate redirects accordingly
   passport.authenticate("local", {
-    successRedirect: "/dashboard",
-    failureRedirect: "/sign-in",
+     failureRedirect: "/sign-in",
     failureFlash: true,
-  })
+  }), function(req, res) {
+    if (req.body.rememberMe) {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // Cookie expires after 30 days
+    } else {
+      req.session.cookie.expires = false; // Cookie expires at end of session
+    }
+    res.redirect( "/dashboard")}
+
 );
 
 function checkAuthenticated(req, res, next) {//  if user is logged in moves to dashboard else continue
