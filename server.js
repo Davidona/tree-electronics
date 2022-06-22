@@ -73,6 +73,7 @@ app.get('/', (req, res) => {
 
 //in case /reset-password/:id' is the link where id is an id of the user
 app.get('/reset-password/:id', (req, res) => {
+  res.flash('success_msg','Please choose a new password')
   res.render('reset-password.ejs', {
     id: req.params.id // assign the id to reset-password.ejs see <%= id %> in reset-password.ejs
   });
@@ -219,7 +220,7 @@ app.get("/verify/:userId/:uniqueString", (req, res) => {
           .then((result) => {
             if (result) { // if comparison is correct
               pool.query(
-                `UPDATE "Users" SET "Spare3" = 1 WHERE "ID"=${userId};`, // change "Spare1" (verified or not) to true 
+                `UPDATE "Users" SET "Spare3" = 1, "Spare2" = 'EMPTY' WHERE "ID"=${userId};`, // change "Spare1" (verified or not) to true 
                 (err, results) => {
                   if (err) {
                     console.log(err);
@@ -273,7 +274,7 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
           .then((result) => { // if comparison is correct 
             if (result) {
 
-              req.flash("success_msg", "User was activated please log in."); // message to be displayed in reset-password page
+              req.flash("success_msg", "please choose a new password."); // message to be displayed in reset-password page
               res.redirect(`/reset-password/${userId}`); //move to reset-password page with userid as a parameter in link
 
 
@@ -282,7 +283,6 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
               req.flash("error", "invalid link please reset again"); //message to be displayed in sign-up page
               res.redirect("/reset-password-request"); //moves to sign up-page
             }
-
 
           })
       } else {
@@ -309,7 +309,7 @@ app.post("/change-email", checkNotAuthenticated, (req, res) => { // checks if ac
         })
       } else {
         pool.query(
-          `UPDATE "Users" SET "Spare1" = '${email}' WHERE "ID"=${req.user.ID};`, // query to update email in spare3 untill verified
+          `UPDATE "Users" SET "Spare1" = '${email}', "Spare2" = 'EMPTY' WHERE "ID"=${req.user.ID};`, // query to update email in spare3 untill verified
           (err, results) => {
             if (err) { // if error in case of update password update failed, not handeled yet
               console.log(err);
@@ -432,7 +432,7 @@ app.post('/reset-password/:id', (req, res) => {
   bcrypt.hash(password, 10, (err, hash) => { // hashes password using bycrpt
     if (err) throw err;
     pool.query(
-      `UPDATE "Users" SET "Password" = '${hash}' WHERE "ID"=${userId};`, // query to update password of a user
+      `UPDATE "Users" SET "Password" = '${hash}', "Spare2" = 'EMPTY' WHERE "ID"=${userId};`, // query to update password of a user
       (err, results) => {
         if (err) { // if error in case of update password update failed, not handeled yet
           console.log(err);
@@ -495,18 +495,19 @@ app.post("/sign-up", async (req, res) => { //in case
   } =
   req.body; // parameters server gets from /sign-up when submit is pressed, (once submit is clicked all inputs from page go to req.body.
   // all string validations are done on html ()
+  console.log(typeof promoCode)
+  console.log(typeof email)
   if (promoCode != '') {
-    ool.query(
-      `SELECT  * FROM public."PromoCode" WHERE "PromoCode"='${promoCode}'`, //this is used to check if email is already in use
-      [email],
+    pool.query(
+      'SELECT * FROM "PromoCode" WHERE "PromoCode" =$1', //this is used to check if email is already in use
+      [promoCode],
       (err, results) => {
         if (err) {
           console.log(err);
         }
         if (results.rows.length == 0) { // if promo code does not exist
-          return res.render("sign-up", { // we return to sign-ip
-            message: "Promo code does not exist!", //with message
-          })
+          req.flash("success_msg", "Invalid PromoCode"); // message to display in sign-in page
+          return res.render("sign-up")
         }
       }
     )
@@ -523,17 +524,12 @@ app.post("/sign-up", async (req, res) => { //in case
   request(verificationURL, function (error, response, body) {
     body = JSON.parse(body);
     if (body.success !== undefined && !body.success) {
-      return res.json({
-        "responseError": "Failed captcha verification"
-      });
-    }
-    res.json({
-      "responseSuccess": "Success"
-    });
+      return res.render("sign-up", { // we return to sign-ip
+        message: "Promo code does not exist!", //with message
+    })}
   });
 
   hashedPassword = await bcrypt.hash(password, 10); // hash password using bcrypt
-
   try {
     pool.query(
       'SELECT "ID", "Name", "Email", "Password" FROM public."Users" WHERE "Email"=$1', //this is used to check if email is already in use
@@ -543,9 +539,12 @@ app.post("/sign-up", async (req, res) => { //in case
           console.log(err);
         }
         if (results.rows.length > 0) { // if account with this email is found
-          return res.render("sign-up", { // we return to sign-ip
-            message: "Email already registered", //with message
-          });
+
+          req.flash(
+            "success_msg",
+            "email already exists." //message to be displayed on sign in oage
+          );
+          res.redirect("/sign-up"); // move to sing-in page
         } else { // if no accounts were found
           pool.query(
             'SELECT case when(MAX("ID") is null) then 0 else MAX("ID")+1 end maximum from public."Users"', // id is created for the user ( depending on number of user already registered)
@@ -655,10 +654,9 @@ app.post(
       req.body["g-recaptcha-response"] === "" ||
       req.body["g-recaptcha-response"] === null
     ) {
-      return res.json({
-        responseCode: 1,
-        responseDesc: "Please select captcha",
-      });
+      return res.render("sign-in", { // we return to sign-ip
+        message: "please check recaptcha", //with message
+      })
     }
     var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
     var verificationURL =
@@ -671,9 +669,9 @@ app.post(
     request(verificationURL, function (error, response, body) {
       body = JSON.parse(body);
       if (body.success !== undefined && !body.success) {
-        return res.json({
-          responseError: "Failed captcha verification",
-        });
+        return res.render("sign-in", { // we return to sign-ip
+          message: "recaptcha verification failed", //with message
+        })
       }
     });
 
