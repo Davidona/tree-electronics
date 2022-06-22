@@ -64,6 +64,14 @@
 h1{
   font-weight: 700;
 }
+.coming-soon {
+
+
+  height: 100vh;
+  width: 100%;
+  margin-top: 400px;
+  padding-bottom: 0;
+}
 
 p{
   font-size: 2rem;
