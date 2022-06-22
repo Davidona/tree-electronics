@@ -9,6 +9,7 @@ const session = require("express-session");
 var path = require('path');
 require("dotenv").config();
 const app = express();
+
 app.use(express.static(__dirname));
 const PORT = process.env.PORT || 3000;
 const {
@@ -33,6 +34,9 @@ app.use(
 );
 app.set("view engine", "ejs");
 
+const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
+
+//const currentUrl='https://tree-electronics.herokuapp.com/'
 
 /// mailing info using node mailer
 var transporter = nodemailer.createTransport({
@@ -104,7 +108,6 @@ app.get("/buy-pc", checkNotAuthenticated, (req, res) => { //  // checks if accou
 
 //in case /buy-cell phone is the link, moves to buy-cell-phone page
 app.get("/buy-cell-phone", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
-  console.log(req.isAuthenticated());
   res.render("buy-cell-phone.ejs", {
     user: req.body.email,
   });
@@ -217,7 +220,7 @@ app.get("/verify/:userId/:uniqueString", (req, res) => {
           .then((result) => {
             if (result) {// if comparison is correct
               pool.query(
-                `UPDATE "Users" SET "Spare1" = \'true\' WHERE "ID"=${userId};`,// change "Spare1" (verified or not) to true 
+                `UPDATE "Users" SET "Spare3" = 1 WHERE "ID"=${userId};`,// change "Spare1" (verified or not) to true 
                 (err, results) => {
                   if (err) {
                     console.log(err);
@@ -322,7 +325,7 @@ app.post("/change-email", checkNotAuthenticated, (req, res) => { // checks if ac
                       }
                     }
                   )
-              const currentUrl = "http://localhost:3000/";    // need to be changed to heroku once deployed
+
               //mailing information 
               var mailOptions = { 
                 from: "tree_shop123@aol.com",
@@ -493,7 +496,19 @@ app.post("/sign-up", async (req, res) => { //in case
   req.body; // parameters server gets from /sign-up when submit is pressed, (once submit is clicked all inputs from page go to req.body.
 // all string validations are done on html ()
   
+if (req.body['g-recaptcha-response'] === undefined || req.body['g-recaptcha-response'] === '' || req.body['g-recaptcha-response'] === null) {
+  return res.json({ "responseError": "something goes to wrong" });
+}
 
+var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA"
+var verificationURL = "https://www.google.com/recaptcha/api/siteverify?secret=" + secretKey + "&response=" + req.body['g-recaptcha-response'] + "&remoteip" + req.socket.remoteAddress;
+request(verificationURL, function (error, response, body) {
+  body = JSON.parse(body);
+  if (body.success !== undefined && !body.success) {
+      return res.json({ "responseError": "Failed captcha verification" });
+  }
+  res.json({ "responseSuccess": "Success" });
+});
 
  hashedPassword = await bcrypt.hash(password, 10); // hash password using bcrypt
 
@@ -518,24 +533,22 @@ app.post("/sign-up", async (req, res) => { //in case
                 }
 
                 var id = results.rows[0].maximum;   // id is taken from result, column "maximum"
-                console.log(id)
                 const uniqueString = uuidv4() + id; // generate unique id using uudv4 and combine it with user id
                 bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {    //hash uniqueString
-                  console.log(hashedUniqueID)
                   try {
                     pool.query(// query to add new user with available information + "Spare1" as false to (used to verify, if true means account is verified) and uniqueString to "Spare2" (used to verify) 
-                      `INSERT INTO public."Users" ("ID", "Name", "FamilyName","Email","Password","PromoCode","Spare1","Spare2") Values ( ${id} ,'${name}','${lastName}','${email}','${hashedPassword}','${promoCode}','false','${hashedUniqueID}');`,
+                      `INSERT INTO public."Users" ("ID", "Name", "FamilyName","Email","Password","PromoCode","Spare3","Spare2") Values ( ${id} ,'${name}','${lastName}','${email}','${hashedPassword}','${promoCode}',0 ,'${hashedUniqueID}');`,
                       (err, results) => {
                         if (err) {
                           throw err;
                         }
-                        const currentUrl = "http://localhost:3000/";    // need to be changed to heroku once deployed
+
                         //mailing information 
                         var mailOptions = { 
                           from: "tree_shop123@aol.com",
                           to: email,
                           subject: "Tree-Electronics please verify your email",
-                          html: `<p> Verify your email address to complete the signup and login into your accout.</p>
+                          html: `<p> Verify your email address to complete the sign-up process and login into your account.</p>
                       <p>Press <a href=${
                         currentUrl + "verify/" + id + "/" + uniqueString
                       }>here</a> to proceed.</p>`,
@@ -573,16 +586,17 @@ app.post("/sign-up", async (req, res) => { //in case
 // in case a post was sent to /reset-password-request
 app.post('/reset-password-request', function (req, res) {   
 
-  const currentUrl = "http://localhost:3000/";  // need to be changed to heraku once deployed
+
   pool.query(
     `SELECT "ID", "Spare2" FROM public."Users" WHERE "Email"='${req.body.email}'`,  // get ID and Spare2 (uniqueString) of given email
     (err, results) => {
       if (err) {
         console.log(err);
       }
-      var userID = results.rows[0].ID   //saves user id from db to variable
-      var uniqueString = uuidv4() + userID;   //create uniqueString using uuvid + userID
+
         if (results.rows.length > 0) {
+          var userID = results.rows[0].ID   //saves user id from db to variable
+          var uniqueString = uuidv4() + userID;   //create uniqueString using uuvid + userID
             bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {
           pool.query(
             `UPDATE "Users" SET "Spare2" = '${hashedUniqueID}' WHERE "ID"=${userID};`,  // add UniqueString to user in "Spare2"
@@ -614,33 +628,32 @@ app.post(
   "/sign-in",
   function (req, res, next) {
       // recaptcha checking
-    // if (
-    //   req.body["g-recaptcha-response"] === undefined ||
-    //   req.body["g-recaptcha-response"] === "" ||
-    //   req.body["g-recaptcha-response"] === null
-    // ) {
-    //   return res.json({
-    //     responseCode: 1,
-    //     responseDesc: "Please select captcha",
-    //   });
-    // }
-    // var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
-    // var verificationURL =
-    //   "https://www.google.com/recaptcha/api/siteverify?secret=" +
-    //   secretKey +
-    //   "&response=" +
-    //   req.body["g-recaptcha-response"] +
-    //   "&remoteip" +
-    //   req.socket.remoteAddress;
-    // request(verificationURL, function (error, response, body) {
-    //   body = JSON.parse(body);
-    //   if (body.success !== undefined && !body.success) {
-    //     return res.json({
-    //       responseError: "Failed captcha verification",
-    //     });
-    //   }
-    // });
-    // end of recaptcha checking
+    if (
+      req.body["g-recaptcha-response"] === undefined ||
+      req.body["g-recaptcha-response"] === "" ||
+      req.body["g-recaptcha-response"] === null
+    ) {
+      return res.json({
+        responseCode: 1,
+        responseDesc: "Please select captcha",
+      });
+    }
+    var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
+    var verificationURL =
+      "https://www.google.com/recaptcha/api/siteverify?secret=" +
+      secretKey +
+      "&response=" +
+      req.body["g-recaptcha-response"] +
+      "&remoteip" +
+      req.socket.remoteAddress;
+    request(verificationURL, function (error, response, body) {
+      body = JSON.parse(body);
+      if (body.success !== undefined && !body.success) {
+        return res.json({
+          responseError: "Failed captcha verification",
+        });
+      }
+    });
 
 
     return next();

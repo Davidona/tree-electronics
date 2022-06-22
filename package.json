@@ -21,6 +21,7 @@
     "express-ejs-layouts": "^2.5.1",
     "express-flash": "^0.0.2",
     "express-session": "^1.17.3",
+    "get-base-url": "^3.0.2",
     "mongoose": "^6.3.8",
     "nodemailer": "^6.7.5",
     "passport": "^0.6.0",

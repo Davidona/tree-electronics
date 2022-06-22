@@ -23,8 +23,7 @@ function initialize(passport) {
               console.log(err);
             }
             if (isMatch) {
-              console.log(user.Spare1)
-              if(user.Spare1=="false"){
+              if(user.Spare3=="0"){
                 return done(null, false, { message: "Account not activated" });
               }
               return done(null, user);
