@@ -497,22 +497,33 @@ app.post("/sign-up", async (req, res) => { //in case
   } =
   req.body; // parameters server gets from /sign-up when submit is pressed, (once submit is clicked all inputs from page go to req.body.
 // all string validations are done on html ()
-  
-if (req.body['g-recaptcha-response'] === undefined || req.body['g-recaptcha-response'] === '' || req.body['g-recaptcha-response'] === null) {
-  return res.json({ "responseError": "something goes to wrong" });
-}
-
-var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA"
-var verificationURL = "https://www.google.com/recaptcha/api/siteverify?secret=" + secretKey + "&response=" + req.body['g-recaptcha-response'] + "&remoteip" + req.socket.remoteAddress;
-request(verificationURL, function (error, response, body) {
+const captcha = req.body['g-recaptcha-response'];
+const secretKey = '6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA';
+const verifyURL = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${captcha}&remoteip=${req.connection.remoteAddress}`
+request(verifyURL,(err, response, body) =>{
   body = JSON.parse(body);
-  if (body.success !== undefined && !body.success) {
-      return res.json({ "responseError": "Failed captcha verification" });
-  }
-  res.json({ "responseSuccess": "Success" });
-});
+  // If not success
+  if(body.success !== undefined && !body.success){
+      console.log("did'nt success");
+      res.redirect('/sign-in');
+  }else{// success
+    // if (req.body['g-recaptcha-response'] === undefined || req.body['g-recaptcha-response'] === '' || req.body['g-recaptcha-response'] === null) {
+    //   return res.json({ "responseError": "something goes to wrong" });
+    // }
 
- hashedPassword = await bcrypt.hash(password, 10); // hash password using bcrypt
+    // var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA"
+    // var verificationURL = "https://www.google.com/recaptcha/api/siteverify?secret=" + secretKey + "&response=" + req.body['g-recaptcha-response'] + "&remoteip" + req.socket.remoteAddress;
+    // request(verificationURL, function (error, response, body) {
+    //   body = JSON.parse(body);
+    //   if (body.success !== undefined && !body.success) {
+    //       return res.json({ "responseError": "Failed captcha verification" });
+    //   }
+    //   res.json({ "responseSuccess": "Success" });
+    // });
+
+
+
+  bcrypt.hash(password, 10).then((hashedPassword)=>{
 
     try {
       pool.query(
@@ -583,8 +594,9 @@ request(verificationURL, function (error, response, body) {
     } catch (err) {
       console.log(err);
     }
+  })}
   }
-);
+)});
 // in case a post was sent to /reset-password-request
 app.post('/reset-password-request', function (req, res) {   
 
@@ -630,36 +642,42 @@ app.post(
   "/sign-in",
   function (req, res, next) {
       // recaptcha checking
-    if (
-      req.body["g-recaptcha-response"] === undefined ||
-      req.body["g-recaptcha-response"] === "" ||
-      req.body["g-recaptcha-response"] === null
-    ) {
-      return res.json({
-        responseCode: 1,
-        responseDesc: "Please select captcha",
-      });
-    }
-    var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
-    var verificationURL =
-      "https://www.google.com/recaptcha/api/siteverify?secret=" +
-      secretKey +
-      "&response=" +
-      req.body["g-recaptcha-response"] +
-      "&remoteip" +
-      req.socket.remoteAddress;
-    request(verificationURL, function (error, response, body) {
+    // if (
+    //   req.body["g-recaptcha-response"] === undefined ||
+    //   req.body["g-recaptcha-response"] === "" ||
+    //   req.body["g-recaptcha-response"] === null
+    // ) {
+    //   return res.json({
+    //     responseCode: 1,
+    //     responseDesc: "Please select captcha",
+    //   });
+    // }
+    // var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
+    // var verificationURL =
+    //   "https://www.google.com/recaptcha/api/siteverify?secret=" +
+    //   secretKey +
+    //   "&response=" +
+    //   req.body["g-recaptcha-response"] +
+    //   "&remoteip" +
+    //   req.socket.remoteAddress;
+    // request(verificationURL, function (error, response, body) {
+    //   body = JSON.parse(body);
+    //   if (body.success !== undefined && !body.success) {
+    //     return res.json({
+    //       responseError: "Failed captcha verification",
+    //     });
+    //   }
+    // });
+    const captcha = req.body['g-recaptcha-response'];
+    const secretKey = '6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA';
+    const verifyURL = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${captcha}&remoteip=${req.connection.remoteAddress}`;
+
+    request(verifyURL,(err, response, body) =>{
       body = JSON.parse(body);
-      if (body.success !== undefined && !body.success) {
-        return res.json({
-          responseError: "Failed captcha verification",
-        });
-      }
-    });
-
-
-    return next();
-  },
+      if(body.success !== undefined && !body.success){
+        console.log("did'nt success");
+        res.redirect('/sign-in');
+      }else{
   // user authenitcate redirects accordingly
   passport.authenticate("local", {
      failureRedirect: "/sign-in",
@@ -672,7 +690,7 @@ app.post(
     }
     res.redirect( "/dashboard")}
 
-);
+  }})});
 
 function checkAuthenticated(req, res, next) {//  if user is logged in moves to dashboard else continue
   if (req.isAuthenticated()) { // if yes it moves to dashboard
