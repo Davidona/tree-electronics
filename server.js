@@ -131,12 +131,78 @@ app.get("/profile-details", checkNotAuthenticated, (req, res) => {// checks if a
   });
 });
 
+
+//in case /verifyEmailChange/:userId/:unique String" this is vericication link where userid is the id of the user and uniqueString is a unique generated string for changing email verification puropose
+app.get("/verifyEmailChange/:userId/:uniqueString", (req, res) => {
+
+    const {
+        userId,
+        uniqueString
+      } = req.params;
+      pool.query(   // first query to get "id" and "Spare2" (used to hold unique string) of an account with given userid
+      `SELECT "ID", "Spare2" FROM public."Users" WHERE "ID"= ${userId}`,
+      (err, results) => {
+        if (err) {
+          console.log(err);
+        }
+        if (results.rows.length > 0) { // if an account with userid was found
+  
+          bcrypt
+            .compare(uniqueString, results.rows[0].Spare2)    //compare unique string from link to unique string of user in database
+            .then((result) => {
+              if (result) {// if comparison is correct
+                pool.query(
+                    `SELECT "Spare1" FROM public."Users" WHERE "ID"= ${userId};`,// change "Spare1" (verified or not) to true 
+                    (err, results) => {
+                      if (err) {
+                        console.log(err);
+                      }
+                pool.query(
+                  `UPDATE "Users" SET "Email" = '${results.rows[0].Spare1}' WHERE "ID"= ${userId};`,// change "Spare1" (verified or not) to true 
+                  (err, results) => {
+                    if (err) {
+                      console.log(err);
+                    }
+                    req.flash("success_msg", "Email was Changed please log in.");    // message to display in sign-in page
+                    res.redirect("/sign-in"); //moves to sign in page
+                  }
+  
+                )
+                }) 
+              } else{
+                      // otherwise ( user not found  user is moved to sign-up page)
+                    req.flash("error", "link is not valid please sign-up");
+                    res.redirect("/sign-up");
+              }
+            });
+        }else{
+          req.flash("error", "user not found please sign up");
+          res.redirect("/sign-up");
+        } 
+  
+      }
+    )
+
+})
+
+app.get("/change-email", checkNotAuthenticated, (req, res) => { // checks if account is not signed in, if not moves to change-email page else continues
+    res.render("change-email.ejs", {
+    });
+  });
+  app.get("/update-password", checkNotAuthenticated, (req, res) => { // checks if account is not signed in, if not moves to update-password page else continues
+    res.render("update-password.ejs", {
+    });
+  });
+
 //in case /verify/:userId/:unique String" this is vericication link where userid is the id of the user and uniqueString is a unique generated string for verification puropose
 app.get("/verify/:userId/:uniqueString", (req, res) => {
   const {
     userId,
     uniqueString
   } = req.params; // takes userid and unique id from the parameters of the link
+
+
+// in case /dashboard is the given link, moves to dashboard.ejs page
 
   pool.query(   // first query to get "id" and "Spare2" (used to hold unique string) of an account with given userid
     `SELECT "ID", "Spare2" FROM public."Users" WHERE "ID"=${userId}`,
@@ -222,7 +288,95 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
       }
     })
 })
-app.post("/profile-details/:id", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
+
+app.post("/change-email", checkNotAuthenticated, (req, res) => { // checks if account is not signed in, if not moves to  sign-in page else continues
+    var {
+        email
+      } = req.body;
+      pool.query(
+        `Select "Email" FROM "Users" WHERE "Email" = '${email}';`, // query to update email in spare3 untill verified
+        (err, results) => {
+          if (err) {    // if error in case of update password update failed, not handeled yet
+            console.log(err);
+          }
+          if (results.rows.length > 0){
+            return res.render("sign-in", {  // we return to sign-ip
+                message: "Email already registered",  //with message
+          })
+        }else{
+            pool.query(
+                `UPDATE "Users" SET "Spare1" = '${email}' WHERE "ID"=${req.user.ID};`, // query to update email in spare3 untill verified
+                (err, results) => {
+                  if (err) {    // if error in case of update password update failed, not handeled yet
+                    console.log(err);
+                  }
+                }
+              )
+              const uniqueString = uuidv4() +req.user.ID // generate unique id using uudv4 and combine it with user id
+              bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {    //hash uniqueString
+                pool.query(
+                    `UPDATE "Users" SET "Spare2" = '${hashedUniqueID}' WHERE "ID"=${req.user.ID};`, // query to update unique id to send to change email
+                    (err, results) => {
+                      if (err) {    // if error in case of update password update failed, not handeled yet
+                        console.log(err);
+                      }
+                    }
+                  )
+              const currentUrl = "http://localhost:3000/";    // need to be changed to heroku once deployed
+              //mailing information 
+              var mailOptions = { 
+                from: "tree_shop123@aol.com",
+                to: email,
+                subject: "Tree-Electronics please verify your new email",
+                html: `<p> Verify your email address to complete email changing process.</p>
+            <p>Press <a href=${
+              currentUrl + "verifyEmailChange/" + req.user.ID + "/" + uniqueString
+            }>here</a> to proceed.</p>`,
+              };
+        
+              transporter
+                .sendMail(mailOptions) //sends mail
+                res.redirect("/profile-details"); //moves to profile-details
+        
+            })
+        }
+    }
+    )
+
+});
+  app.post("/update-password", checkNotAuthenticated, (req, res) => { // checks if account is not signed in, if not moves to sign-in page else continues
+    var {
+        password,
+        oldPassword
+      } = req.body;
+
+        bcrypt
+          .compare(oldPassword,req.user.Password)    //compare unique string from link to unique string of user in database
+          .then((result) => {
+            if (result) {// if comparison is correct
+                bcrypt.hash(password, 10, (err, hash) => {
+              pool.query(
+                `UPDATE "Users" SET "Password" = '${hash}' WHERE "ID"=${req.user.ID};`,// change "Spare1" (verified or not) to true 
+                (err, results) => {
+                  if (err) {
+                    console.log(err);
+                  }
+                  req.user.Password=hash;
+                  req.flash("success_msg", "password was Changed.");    // message to display in sign-in page
+                  res.redirect("/update-password"); //moves to sign in page
+                }
+
+              )})
+            } else{
+                    // otherwise ( user not found  user is moved to sign-up page)
+                  req.flash("error", "old password is incorrect");
+                  res.redirect("/update-password");
+            }
+        });
+    }
+);
+
+app.post("/profile-details", checkNotAuthenticated, (req, res) => {// checks if account is not signed in, if not moves to sign-in page else continues
 
 
     // name: req.user.Name,
@@ -234,40 +388,34 @@ app.post("/profile-details/:id", checkNotAuthenticated, (req, res) => {// checks
     // street: req.user.Street,
     // zip: req.user.ZipCode
 
-  const userId = req.params.id;
+  const userId = req.user.ID;
   var {
     name,
-    lastName,
+    lastname,
     phone,
     country,
     city,
     street,
     zip
   } = req.body;
-  console.log(req.user)
-  console.log(req.body)
-  console.log(req.params)
-  name==''?req.user.Name : name
-  lastName==''?req.user.FamilyName : lastName
-  phone==''?req.user.PhoneNumber : phone
-  country==''?req.user.Country : country
-  city==''?req.user.City : city
-  street==''?req.user.Street : street
-  zip==''?req.user.ZipCode : zip
-  zip.trimStart()
-  phone.trimStart()
-  country.trimStart()
-  console.log(phone.trimStart())
-  req.user={name,lastName,phone,country,city,street,zip}
-  console.log(req.user)
+
+  req.user.Name = name=='---'?req.user.Name : name
+  req.user.FamilyName = lastname=='---'?req.user.FamilyName : lastname
+  req.user.PhoneNumber = phone=='---'?req.user.PhoneNumber : phone
+  req.user.Country = country==''?req.user.Country : country
+  req.user.City = city=='---'?req.user.City : city
+  req.user.Street = street=='---'?req.user.Street : street
+  req.user.ZipCode = zip=='---'?req.user.ZipCode : zip
+
   pool.query(
-    `UPDATE "Users" SET "Name" = '${name}', "FamilyName" = '${lastName}', "PhoneNumber" = '${phone}', "Country" = 'port', "City" = '${city}', "Street" = '${street}', "ZipCode" = '${zip}' WHERE "ID"=${userId};`, // query to update password of a user
+    `UPDATE "Users" SET "Name" = '${req.user.Name}', "FamilyName" = '${req.user.FamilyName}', "PhoneNumber" = '${req.user.PhoneNumber}', "Country" = '${req.user.Country}', "City" = '${req.user.City}', "Street" = '${req.user.Street}', "ZipCode" = '${req.user.ZipCode = zip}' WHERE "ID"=${userId};`, // query to update password of a user
     (err, results) => {
       if (err) {    // if error in case of update password update failed, not handeled yet
         console.log(err);
       }
     }
   )
+  res.redirect('/profile-details');
 
 });
 // in case a post is sent for /reset-password/:id  where id is the id of a user.
@@ -432,12 +580,10 @@ app.post('/reset-password-request', function (req, res) {
       if (err) {
         console.log(err);
       }
-
-
+      var userID = results.rows[0].ID   //saves user id from db to variable
+      var uniqueString = uuidv4() + userID;   //create uniqueString using uuvid + userID
         if (results.rows.length > 0) {
             bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => {
-            var userID = results.rows[0].ID   //saves user id from db to variable
-            const uniqueString = uuidv4() + userID;   //create uniqueString using uuvid + userID
           pool.query(
             `UPDATE "Users" SET "Spare2" = '${hashedUniqueID}' WHERE "ID"=${userID};`,  // add UniqueString to user in "Spare2"
             (err, results) => {

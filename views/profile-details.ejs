@@ -15,7 +15,7 @@
 </head>
 
 <body>
-  <form id="profile-details" action="/profile-details/<%= id %>" method="POST">
+  <form id="profile-details" action="/profile-details" method="POST">
   <nav class="navbar navbar-expand-lg">
     <div class="container">
       <a class="navbar-brand" href="/dashboard">Tree-Electronics</a>
@@ -196,21 +196,38 @@
             <input type="hidden" id="name" name="name" />
             <input type="hidden" id="lastname" name="lastname" />
             <div class="btn-group" role="group" aria-label="Basic example">
-              <button type="button" href="./update-email" class="btn btn-secondary">Update Email </button>
-              <button type="button" href="./update-password" class="btn btn-secondary">Update Password</button>
+              <button type="button" onclick="location.href='./change-email'" class="btn btn-secondary">Update Email </button>
+              <button type="button" onclick="location.href='./update-password'" class="btn btn-secondary">Update Password</button>
               <input type="submit" id="submit" value="Update Details" class="btn btn-secondary"></button>
 
             </div>
             <script type="text/javascript">
               var form = document.getElementById('profile-details');
               form.addEventListener("submit", function (event) {
-                     document.getElementById("phone").value= document.getElementById("phonefield").textContent
-                     document.getElementById("street").value= document.getElementById("streetfield").textContent
-                     document.getElementById("country").value= document.getElementById("countryfield").textContent
-                     document.getElementById("zip").value= document.getElementById("zipfield").textContent
-                     document.getElementById("city").value= document.getElementById("cityfield").textContent
-                     document.getElementById("name").value= document.getElementById("namefield").textContent
-                     document.getElementById("lastname").value= document.getElementById("lastnamefield").textContent
+                // this section is for storing text from paragraphs and save, we trim them because they come with spaces in the end and in the start
+                      var phone= (document.getElementById("phonefield").textContent).trimStart().trimEnd()
+                      var street = (document.getElementById("streetfield").textContent).trimStart().trimEnd()
+                      var country =(document.getElementById("countryfield").textContent).trimStart().trimEnd()
+                      var zip =(document.getElementById("zipfield").textContent).trimStart().trimEnd()
+                      var city =(document.getElementById("cityfield").textContent).trimStart().trimEnd()
+                      var name = (document.getElementById("namefield").textContent).trimStart().trimEnd()
+                      var lastname = (document.getElementById("lastnamefield").textContent).trimStart().trimEnd()
+                      if (phone==''||street==''||country==''||zip==''||city==''||name==''||lastname==''){
+                        event.preventDefault();
+                      alert('Please make sure fields are not empty');
+                      }else{
+                      //this is for sending the values as inputs for submit
+                     document.getElementById("phone").value= phone;
+                     document.getElementById("street").value=street
+                     document.getElementById("country").value=country
+                     document.getElementById("zip").value= zip
+                     document.getElementById("city").value= city
+                     document.getElementById("name").value= name
+                     document.getElementById("lastname").value= lastname
+                    alert('Updated profile')
+
+                    }
+                     
               }
                 , false);
             </script>
