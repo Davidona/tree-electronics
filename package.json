@@ -27,6 +27,7 @@
     "passport-local": "^1.0.0",
     "passport-remember-me": "^0.0.1",
     "pg": "^8.7.3",
+    "request": "^2.88.2",
     "uuid": "^8.3.2",
     "v4": "^0.0.1"
   },

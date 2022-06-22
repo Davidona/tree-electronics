@@ -12,9 +12,7 @@ const app = express();
 
 app.use(express.static(__dirname));
 const PORT = process.env.PORT || 3000;
-const {
-  request
-} = require("https");
+const request = require('request');
 const initializePassport = require("./passportConfig");
 var nodemailer = require("nodemailer");
 const {
