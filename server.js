@@ -34,10 +34,9 @@ app.use(
 );
 app.set("view engine", "ejs");
 
-const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
+//const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
 
-//const currentUrl='https://tree-electronics.herokuapp.com/'
-
+const currentUrl='https://tree-electronics.herokuapp.com/'
 /// mailing info using node mailer
 var transporter = nodemailer.createTransport({
   service: "Aol",
