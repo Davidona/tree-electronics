@@ -68,8 +68,9 @@ app.use(passport.session());
 app.use(flash());
 
 app.get('/', (req, res) => {
-  res.render('dashboard.ejs');
+  res.render('sign-in.ejs');
 });
+
 //in case /reset-password/:id' is the link where id is an id of the user
 app.get('/reset-password/:id', (req, res) => {
   res.render('reset-password.ejs', {
