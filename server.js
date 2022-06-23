@@ -34,9 +34,9 @@ app.use(
 );
 app.set("view engine", "ejs");
 
-const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
+//const currentUrl="http://localhost:"+PORT+"/"; 
 
-//const currentUrl = 'https://tree-electronics.herokuapp.com/'
+const currentUrl = 'https://tree-electronics.herokuapp.com/'
 /// mailing info using node mailer
 var transporter = nodemailer.createTransport({
   service: "Aol",
@@ -707,6 +707,9 @@ function checkNotAuthenticated(req, res, next) { //  if user is not logged in mo
   }
   res.redirect("/sign-in"); //else moves to sign- in
 }
+app.get('*', function(req, res){
+  res.status(404).send('<h1>404! Page not found</h1>');
+});
 
 app.listen(PORT);
 console.log('Server started! At http://localhost:' + PORT + '/sign-in');
