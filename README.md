@@ -96,18 +96,32 @@ b.	A link with unique string will be sent to the email that redirects to reset p
 
 •	Dashboard, profile details, update email, update password, buy pc and buy cellphone pages can be accessed only if user is logged in otherwise user will be redirected to sign in page.
 
+
 Technologies
+
 List of main node js packages
+
 •	Bcrypt – to encrypt passwords and uniqueIDs
+
 •	Passport- to authenticate users on login
+
 •	Express- session – to create a session for a user and save cookies
+
 •	Nodemailer – to be able to send mails
+
 •	EJS – template engine for html generating
+
 •	PG – for postgresql
 
 Other technologies:
+
 •	Heroku - a cloud platform as a service that support node js
+
 •	Postgresql - open-source object-relational database system
+
 •	GIT - free and open-source distributed version control system
+
 •	Github - a provider of Internet hosting for software development and version control using Git.
+
 •	Recaptcha - a free service that protects the site from spam and abuse – “I am not a robot”.
+
