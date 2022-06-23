@@ -34,7 +34,7 @@ app.use(
 );
 app.set("view engine", "ejs");
 
-//const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
+//const currentUrl="http://localhost:"+PORT+"/"; 
 
 const currentUrl = 'https://tree-electronics.herokuapp.com/'
 /// mailing info using node mailer
@@ -150,11 +150,11 @@ app.get("/verifyEmailChange/:userId/:uniqueString", (req, res) => {
         console.log(err);
       }
       if (results.rows.length > 0) { // if an account with userid was found
-
+        var Spare2=results.rows[0].Spare2;
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2) //compare unique string from link to unique string of user in database
           .then((result) => {
-            if (result) { // if comparison is correct
+            if (result  && Spare2!=null && Spare2 !='EMPTY' && Spare2 !='') { // if comparison is correct
               pool.query(
                 `SELECT "Spare1" FROM public."Users" WHERE "ID"= ${userId};`, // change "Spare1" (verified or not) to true 
                 (err, results) => {
@@ -162,7 +162,7 @@ app.get("/verifyEmailChange/:userId/:uniqueString", (req, res) => {
                     console.log(err);
                   }
                   pool.query(
-                    `UPDATE "Users" SET "Email" = '${results.rows[0].Spare1}' WHERE "ID"= ${userId};`, // change "Spare1" (verified or not) to true 
+                    `UPDATE "Users" SET "Email" = '${results.rows[0].Spare1}', "Spare2" = 'EMPTY' WHERE "ID"= ${userId};`, // change "Spare1" (verified or not) to true 
                     (err, results) => {
                       if (err) {
                         console.log(err);
@@ -176,7 +176,7 @@ app.get("/verifyEmailChange/:userId/:uniqueString", (req, res) => {
             } else {
               // otherwise ( user not found  user is moved to sign-up page)
               req.flash("error", "link is not valid please sign-up");
-              res.redirect("/sign-up");
+              res.redirect("/sign-in");
             }
           });
       } else {
@@ -212,14 +212,14 @@ app.get("/verify/:userId/:uniqueString", (req, res) => {
       if (err) {
         console.log(err);
       }
-      if (results.rows.length > 0) { // if an account with userid was found
-
+      if (results.rows.length > 0)  { // if an account with userid was found
+        var Spare2 = results.rows[0].Spare2;
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2) //compare unique string from link to unique string of user in database
           .then((result) => {
-            if (result) { // if comparison is correct
+            if (result  && Spare2!=null && Spare2 !='EMPTY' && Spare2 !='') { // if comparison is correct
               pool.query(
-                `UPDATE "Users" SET "Spare3" = 1 WHERE "ID"=${userId};`, // change "Spare1" (verified or not) to true 
+                `UPDATE "Users" SET "Spare3" = 1, "Spare2" = 'EMPTY' WHERE "ID"=${userId};`, // change "Spare1" (verified or not) to true 
                 (err, results) => {
                   if (err) {
                     console.log(err);
@@ -267,13 +267,14 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
       if (err) {
         console.log(err);
       }
-      if (results.rows.length > 0) { // if a user was found with given id
+      if (results.rows.length > 0)  { // if a user was found with given id
+        var Spare2 = results.rows[0].Spare2;
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2) // compare uniqueString from link parameters to uniqueString from account (Spare2)
           .then((result) => { // if comparison is correct 
-            if (result) {
+            if (result  && Spare2!=null && Spare2 !='EMPTY' && Spare2 !='') {
 
-              req.flash("success_msg", "User was activated please log in."); // message to be displayed in reset-password page
+              req.flash("success_msg", "please choose a new password."); // message to be displayed in reset-password page
               res.redirect(`/reset-password/${userId}`); //move to reset-password page with userid as a parameter in link
 
 
@@ -282,7 +283,6 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
               req.flash("error", "invalid link please reset again"); //message to be displayed in sign-up page
               res.redirect("/reset-password-request"); //moves to sign up-page
             }
-
 
           })
       } else {
@@ -309,7 +309,7 @@ app.post("/change-email", checkNotAuthenticated, (req, res) => { // checks if ac
         })
       } else {
         pool.query(
-          `UPDATE "Users" SET "Spare1" = '${email}' WHERE "ID"=${req.user.ID};`, // query to update email in spare3 untill verified
+          `UPDATE "Users" SET "Spare1" = '${email}' WHERE "ID"=${req.user.ID};`, // query to update email in spare1 untill verified
           (err, results) => {
             if (err) { // if error in case of update password update failed, not handeled yet
               console.log(err);
@@ -432,7 +432,7 @@ app.post('/reset-password/:id', (req, res) => {
   bcrypt.hash(password, 10, (err, hash) => { // hashes password using bycrpt
     if (err) throw err;
     pool.query(
-      `UPDATE "Users" SET "Password" = '${hash}' WHERE "ID"=${userId};`, // query to update password of a user
+      `UPDATE "Users" SET "Password" = '${hash}', "Spare2" = 'EMPTY' WHERE "ID"=${userId};`, // query to update password of a user
       (err, results) => {
         if (err) { // if error in case of update password update failed, not handeled yet
           console.log(err);
@@ -495,23 +495,6 @@ app.post("/sign-up", async (req, res) => { //in case
   } =
   req.body; // parameters server gets from /sign-up when submit is pressed, (once submit is clicked all inputs from page go to req.body.
   // all string validations are done on html ()
-  if (promoCode != '') {
-    ool.query(
-      `SELECT  * FROM public."PromoCode" WHERE "PromoCode"='${promoCode}'`, //this is used to check if email is already in use
-      [email],
-      (err, results) => {
-        if (err) {
-          console.log(err);
-        }
-        if (results.rows.length == 0) { // if promo code does not exist
-          return res.render("sign-up", { // we return to sign-ip
-            message: "Promo code does not exist!", //with message
-          })
-        }
-      }
-    )
-  }
-
   if (req.body['g-recaptcha-response'] === undefined || req.body['g-recaptcha-response'] === '' || req.body['g-recaptcha-response'] === null) {
     return res.json({
       "responseError": "something goes to wrong"
@@ -523,86 +506,101 @@ app.post("/sign-up", async (req, res) => { //in case
   request(verificationURL, function (error, response, body) {
     body = JSON.parse(body);
     if (body.success !== undefined && !body.success) {
-      return res.json({
-        "responseError": "Failed captcha verification"
-      });
-    }
-    res.json({
-      "responseSuccess": "Success"
-    });
+      return res.render("sign-up", { // we return to sign-ip
+        message: "Promo code does not exist!", //with message
+    })}
   });
 
-  hashedPassword = await bcrypt.hash(password, 10); // hash password using bcrypt
-
-  try {
+  if (promoCode != '') {
     pool.query(
-      'SELECT "ID", "Name", "Email", "Password" FROM public."Users" WHERE "Email"=$1', //this is used to check if email is already in use
-      [email],
+      'SELECT * FROM "PromoCode" WHERE "PromoCode" =$1', //this is used to check if email is already in use
+      [promoCode],
       (err, results) => {
         if (err) {
           console.log(err);
         }
-        if (results.rows.length > 0) { // if account with this email is found
-          return res.render("sign-up", { // we return to sign-ip
-            message: "Email already registered", //with message
-          });
-        } else { // if no accounts were found
-          pool.query(
-            'SELECT case when(MAX("ID") is null) then 0 else MAX("ID")+1 end maximum from public."Users"', // id is created for the user ( depending on number of user already registered)
-            (err, results) => {
-              if (err) {
-                throw err;
-              }
-
-              var id = results.rows[0].maximum; // id is taken from result, column "maximum"
-              const uniqueString = uuidv4() + id; // generate unique id using uudv4 and combine it with user id
-              bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => { //hash uniqueString
-                try {
-                  pool.query( // query to add new user with available information + "Spare1" as false to (used to verify, if true means account is verified) and uniqueString to "Spare2" (used to verify) 
-                    `INSERT INTO public."Users" ("ID", "Name", "FamilyName","Email","Password","PromoCode","Spare3","Spare2") Values ( ${id} ,'${name}','${lastName}','${email}','${hashedPassword}','${promoCode}',0 ,'${hashedUniqueID}');`,
-                    (err, results) => {
-                      if (err) {
-                        throw err;
-                      }
-
-                      //mailing information 
-                      var mailOptions = {
-                        from: "tree_shop123@aol.com",
-                        to: email,
-                        subject: "Tree-Electronics please verify your email",
-                        html: `<p> Verify your email address to complete the sign-up process and login into your account.</p>
-                      <p>Press <a href=${
-                        currentUrl + "verify/" + id + "/" + uniqueString
-                      }>here</a> to proceed.</p>`,
-                      };
-
-                      transporter
-                        .sendMail(mailOptions) //sends mail
-                        .then(() => {
-                          // email sent and verification record saved
-                          req.flash(
-                            "success_msg",
-                            "An activation link was sent to your mail." //message to be displayed on sign in oage
-                          );
-                          res.redirect("/sign-in"); // move to sing-in page
-                        })
-                        .catch((err) => {
-                          console.log(err);
+        if (results.rows.length == 0) { // if promo code does not exist
+          req.flash("success_msg", "Invalid PromoCode"); // message to display in sign-in page
+          return res.render("sign-up")
+        }else{
+          bcrypt.hash(password, 10, (err, hashedPassword) => {
+            try {
+              pool.query(
+                'SELECT "ID", "Name", "Email", "Password" FROM public."Users" WHERE "Email"=$1', //this is used to check if email is already in use
+                [email],
+                (err, results) => {
+                  if (err) {
+                    console.log(err);
+                  }
+                  if (results.rows.length > 0) { // if account with this email is found
+          
+                    req.flash(
+                      "success_msg",
+                      "email already exists." //message to be displayed on sign in oage
+                    );
+                    res.redirect("/sign-up"); // move to sing-in page
+                  } else { // if no accounts were found
+                    pool.query(
+                      'SELECT case when(MAX("ID") is null) then 0 else MAX("ID")+1 end maximum from public."Users"', // id is created for the user ( depending on number of user already registered)
+                      (err, results) => {
+                        if (err) {
+                          throw err;
+                        }
+          
+                        var id = results.rows[0].maximum; // id is taken from result, column "maximum"
+                        const uniqueString = uuidv4() + id; // generate unique id using uudv4 and combine it with user id
+                        bcrypt.hash(uniqueString, 10, (err, hashedUniqueID) => { //hash uniqueString
+                          try {
+                            pool.query( // query to add new user with available information + "Spare1" as false to (used to verify, if true means account is verified) and uniqueString to "Spare2" (used to verify) 
+                              `INSERT INTO public."Users" ("ID", "Name", "FamilyName","Email","Password","PromoCode","Spare3","Spare2") Values ( ${id} ,'${name}','${lastName}','${email}','${hashedPassword}','${promoCode}',0 ,'${hashedUniqueID}');`,
+                              (err, results) => {
+                                if (err) {
+                                  throw err;
+                                }
+          
+                                //mailing information 
+                                var mailOptions = {
+                                  from: "tree_shop123@aol.com",
+                                  to: email,
+                                  subject: "Tree-Electronics please verify your email",
+                                  html: `<p> Verify your email address to complete the sign-up process and login into your account.</p>
+                                <p>Press <a href=${
+                                  currentUrl + "verify/" + id + "/" + uniqueString
+                                }>here</a> to proceed.</p>`,
+                                };
+          
+                                transporter
+                                  .sendMail(mailOptions) //sends mail
+                                  .then(() => {
+                                    // email sent and verification record saved
+                                    req.flash(
+                                      "success_msg",
+                                      "An activation link was sent to your mail." //message to be displayed on sign in oage
+                                    );
+                                    res.redirect("/sign-in"); // move to sing-in page
+                                  })
+                                  .catch((err) => {
+                                    console.log(err);
+                                  });
+                              }
+                            );
+                          } catch (err) {
+                            console.log(err);
+                          }
                         });
-                    }
-                  );
-                } catch (err) {
-                  console.log(err);
+                      }
+                    );
+                  }
                 }
-              });
-            }
-          );
+              );
+            } catch (err) {
+              console.log(err);
+            }})
         }
       }
-    );
-  } catch (err) {
-    console.log(err);
+    )
   }
+
 });
 // in case a post was sent to /reset-password-request
 app.post('/reset-password-request', function (req, res) {
@@ -655,10 +653,9 @@ app.post(
       req.body["g-recaptcha-response"] === "" ||
       req.body["g-recaptcha-response"] === null
     ) {
-      return res.json({
-        responseCode: 1,
-        responseDesc: "Please select captcha",
-      });
+      return res.render("sign-in", { // we return to sign-ip
+        message: "please check recaptcha", //with message
+      })
     }
     var secretKey = "6LebMGkgAAAAALx7k1QSWAsYZA9g7Wm9sFcDJyMA";
     var verificationURL =
@@ -671,9 +668,9 @@ app.post(
     request(verificationURL, function (error, response, body) {
       body = JSON.parse(body);
       if (body.success !== undefined && !body.success) {
-        return res.json({
-          responseError: "Failed captcha verification",
-        });
+        return res.render("sign-in", { // we return to sign-ip
+          message: "recaptcha verification failed", //with message
+        })
       }
     });
 
@@ -709,6 +706,9 @@ function checkNotAuthenticated(req, res, next) { //  if user is not logged in mo
   }
   res.redirect("/sign-in"); //else moves to sign- in
 }
+app.get('*', function(req, res){
+  res.status(404).send('<h1>404! Page not found</h1>');
+});
 
 app.listen(PORT);
 console.log('Server started! At http://localhost:' + PORT + '/sign-in');
