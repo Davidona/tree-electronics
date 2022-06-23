@@ -34,9 +34,9 @@ app.use(
 );
 app.set("view engine", "ejs");
 
-//const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
+const currentUrl="http://localhost:"+PORT+"/"; //https://tree-electronics.herokuapp.com/
 
-const currentUrl = 'https://tree-electronics.herokuapp.com/'
+//const currentUrl = 'https://tree-electronics.herokuapp.com/'
 /// mailing info using node mailer
 var transporter = nodemailer.createTransport({
   service: "Aol",
@@ -73,7 +73,6 @@ app.get('/', (req, res) => {
 
 //in case /reset-password/:id' is the link where id is an id of the user
 app.get('/reset-password/:id', (req, res) => {
-  res.flash('success_msg','Please choose a new password')
   res.render('reset-password.ejs', {
     id: req.params.id // assign the id to reset-password.ejs see <%= id %> in reset-password.ejs
   });
@@ -151,11 +150,11 @@ app.get("/verifyEmailChange/:userId/:uniqueString", (req, res) => {
         console.log(err);
       }
       if (results.rows.length > 0) { // if an account with userid was found
-
+        var Spare2=results.rows[0].Spare2;
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2) //compare unique string from link to unique string of user in database
           .then((result) => {
-            if (result) { // if comparison is correct
+            if (result  && Spare2!=null && Spare2 !='EMPTY' && Spare2 !='') { // if comparison is correct
               pool.query(
                 `SELECT "Spare1" FROM public."Users" WHERE "ID"= ${userId};`, // change "Spare1" (verified or not) to true 
                 (err, results) => {
@@ -177,7 +176,7 @@ app.get("/verifyEmailChange/:userId/:uniqueString", (req, res) => {
             } else {
               // otherwise ( user not found  user is moved to sign-up page)
               req.flash("error", "link is not valid please sign-up");
-              res.redirect("/sign-up");
+              res.redirect("/sign-in");
             }
           });
       } else {
@@ -213,12 +212,12 @@ app.get("/verify/:userId/:uniqueString", (req, res) => {
       if (err) {
         console.log(err);
       }
-      if (results.rows.length > 0) { // if an account with userid was found
-
+      if (results.rows.length > 0)  { // if an account with userid was found
+        var Spare2 = results.rows[0].Spare2;
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2) //compare unique string from link to unique string of user in database
           .then((result) => {
-            if (result) { // if comparison is correct
+            if (result  && Spare2!=null && Spare2 !='EMPTY' && Spare2 !='') { // if comparison is correct
               pool.query(
                 `UPDATE "Users" SET "Spare3" = 1, "Spare2" = 'EMPTY' WHERE "ID"=${userId};`, // change "Spare1" (verified or not) to true 
                 (err, results) => {
@@ -268,11 +267,12 @@ app.get('/resetPassword/:userId/:uniqueString', (req, res) => {
       if (err) {
         console.log(err);
       }
-      if (results.rows.length > 0) { // if a user was found with given id
+      if (results.rows.length > 0)  { // if a user was found with given id
+        var Spare2 = results.rows[0].Spare2;
         bcrypt
           .compare(uniqueString, results.rows[0].Spare2) // compare uniqueString from link parameters to uniqueString from account (Spare2)
           .then((result) => { // if comparison is correct 
-            if (result) {
+            if (result  && Spare2!=null && Spare2 !='EMPTY' && Spare2 !='') {
 
               req.flash("success_msg", "please choose a new password."); // message to be displayed in reset-password page
               res.redirect(`/reset-password/${userId}`); //move to reset-password page with userid as a parameter in link
